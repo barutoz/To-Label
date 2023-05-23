@@ -1,6 +1,6 @@
 const express = require('express');
 const mysql = require('mysql');
-const app = express();
+const app = express();////きなみともや
 const multer = require('multer'); // ファイルのアップロードを処理するためのミドルウェア
 const path = require('path');
 const upload = multer({ dest: 'public/uploads/' }); // アップロード先のディレクトリを指定
