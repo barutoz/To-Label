@@ -37,6 +37,7 @@
           <input type="number" name="room" class="form-control" id="room" placeholder="4桁の数字">
           <input type="submit" class="btn btn-primary mt-3" style="position: absolute; right: 1rem;" value="入室">
         </form>
+        <h5 id="append-msg2" class="text-danger p-1"><%= msg %></h5>
       </div>
     </div>
     <div class="card mt-4">
@@ -50,6 +51,9 @@
           <div class="col-auto">
           <button class="btn btn-primary" id="random_number">自動生成</button>
           </div>
+          <div class="col-auto">
+            <h5 id="append-msg"></h5>
+            </div>
           </div>
       </div>
     </div>
@@ -59,6 +63,17 @@ $('#random_number').click(function(){
   $.post('/random','random=true')
   .done(function(data){
     console.log(data);
+    if(data){
+      $('#new-number').val(data);
+      $('#append-msg').text('生成完了! 同じグループメンバーにシェアしてね!');
+      $('#append-msg').attr('class','text-success p-1');
+      $('#append-msg2').text('入室ボタンを押せば、番号入力いらずで入室できます!');
+      $('#append-msg2').attr('class','text-success p-1');
+      $('#room').val(data);
+    }else{
+      $('#append-msg').text('生成失敗、もう一度お試し下さい。');
+      $('#append-msg').attr('class','text-danger p-1');
+    }
   })
 });
 </script>
