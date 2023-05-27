@@ -4,12 +4,37 @@ const app = express();////きなみともや
 const multer = require('multer'); // ファイルのアップロードを処理するためのミドルウェア
 const path = require('path');
 const upload = multer({ dest: 'public/uploads/' }); // アップロード先のディレクトリを指定
+const sqlite3 = require("sqlite3");
+const db = new sqlite3.Database("DV.sqlite3");
 
+function number_check(number){
+  if(number=0){
+    var exists=true;
+  }else{
+    db.all("select number from room_number",function(err,row){
+      for(var ini=0; ini<row.length; ini++){
+        if(row[ini]['number']==number){
+          var exists=true;
+  }}})};
+  if(exists){
+    return false
+  }else{
+    return true
+  }};
+
+  function number_generate(number){
+    if(number_check(number)==true){
+      return number
+    }else{
+    while (number_check(number)==false){
+      var number=Math.floor(Math.random()*10000);
+    }
+    return number
+  }};
 
 app.use(express.urlencoded({ extended: true}))
 app.use(express.static('public'));
 app.set("view engine", "ejs");
-
 
 const users = [
   {username:"example",password:"password"},
@@ -38,19 +63,48 @@ app.get('/login', (req, res) => {
 
 
 app.post('/home', (req, res) => {
-  console.log(req);
   if (users.some((user)=>user.username===req.body.username&&user.password===req.body.password)){
     username = req.body.username;
     return res.render('home.ejs');
   }
-  return res.render('login.ejs')
+  
 });
 
 app.get('/home', (req, res) => {
   res.render('home.ejs', { username: username }); // home.ejsにusernameを渡す
 });
 
+app.post('/room',(req,res)=>{
+  console.log(req.body.room);
+  return res.render('room.ejs')
+});
 
+app.post('/random',(req,res)=>{
+  if (req.body.random=='true'){
+    var number=Math.floor(Math.random()*10000);
+    var number=number_generate(number);
+    db.all("select number from room_number",function(err,row){
+      var rowrow=row.length+1
+      db.serialize(()=>{
+        db.run('INSERT INTO room_number VALUES('+String(rowrow)+','+String(number)+')');
+      });});
+    if(number<1000){
+      new_number='0'+String(number);
+      if(number<100){
+        new_number='0'+new_number;
+        if(number<10){
+          new_number='0'+new_number;
+        }
+      }
+    }else{
+      new_number=String(number);
+    }
+    console.log(new_number);
+    res.send(new_number);
+  }else{
+    return false
+  };
+});
 
 // app.js
 
