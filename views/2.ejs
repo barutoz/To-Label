@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Hello World</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css" />
     <script src="/send_url.js"></script>
     <style>
       /* CSS スタイルを追加してください */
@@ -12,27 +12,27 @@
         margin: 0;
         padding: 0;
       }
-      
+
       .container {
         display: flex;
       }
-      
+
       .menu {
         width: 200px;
         background-color: #f1f1f1;
         padding: 20px;
       }
-      
+
       .content {
         flex-grow: 1;
         padding: 20px;
       }
-      
+
       .textarea {
         width: 100%;
         height: 200px;
       }
-      
+
       .submit-btn {
         margin-top: 10px;
       }
@@ -42,7 +42,11 @@
     <div class="container">
       <div class="menu">
         <form id="slide-menu-form" action="/2" method="POST">
-          <textarea class="textarea" name="message" placeholder="Write your message"></textarea>
+          <textarea
+            class="textarea"
+            name="message"
+            placeholder="Write your message"
+          ></textarea>
           <button class="submit-btn" type="submit">Submit</button>
         </form>
       </div>
@@ -51,7 +55,7 @@
         <p>Body content goes here.</p>
         <h2>Submitted Messages:</h2>
         <% messages.forEach(function(message) { %>
-          <p><%= message %></p>
+        <p><%= message %></p>
         <% }); %>
       </div>
     </div>

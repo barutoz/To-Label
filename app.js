@@ -69,28 +69,27 @@ app.use(express.static('public'));
 app.set("view engine", "ejs");
 
 const users = [
-  {username:"example",password:"password"},
-  {username:"example2",password:"password2"},
-]
+  { username: "example", password: "password" },
+  { username: "example2", password: "password2" },
+];
 
 const connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'password',
-  database: 'list_app'
+  host: "localhost",
+  user: "root",
+  password: "password",
+  database: "list_app",
 });
 
-
-app.get('/', (req, res) => {
-  res.render('hello.ejs');
+app.get("/", (req, res) => {
+  res.render("hello.ejs");
 });
 
-app.get('/index', (req, res) => {
-  res.render('index.ejs');
+app.get("/index", (req, res) => {
+  res.render("index.ejs");
 });
 
-app.get('/login', (req, res) => {
-  res.render('login.ejs');
+app.get("/login", (req, res) => {
+  res.render("login.ejs");
 });
 
 
@@ -194,34 +193,31 @@ app.post('/2', (req, res) => {
   const message = req.body.message;
   messages.push(message); // メッセージを配列に追加
   res.redirect('/room/'+req.session.team_number); // 2.ejsにリダイレクト
+
 });
 
-app.post('/profile', (req, res) => {
-  res.render('profile', { username: req.body.username });
+app.post("/profile", (req, res) => {
+  res.render("profile", { username: req.body.username });
 });
-app.get('/profile', (req, res) => {
-  res.render('profile.ejs');
+app.get("/profile", (req, res) => {
+  res.render("profile.ejs");
 });
 
-
-
-app.get('/0', (req, res) => {
-  res.render('0.ejs');
+app.get("/0", (req, res) => {
+  res.render("0.ejs");
 });
-app.get('/1', (req, res) => {
-  res.render('1.ejs');
+app.get("/1", (req, res) => {
+  res.render("1.ejs");
 });
 
 app.get('/3', (req, res) => {
   res.render('3.ejs', { username: username });
 });
-app.get('/4', (req, res) => {
-  res.render('4.ejs', { username: username });
+
+app.get("/4", (req, res) => {
+  res.render("4.ejs", { username: username });
 });
 
-
-
-
 app.listen(3000, () =>
-console.log("Server is running \n port: http://localhost:3000/")
-  );
+  console.log("Server is running \n port: http://localhost:3000/")
+);
