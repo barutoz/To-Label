@@ -1,58 +1,59 @@
 /*＠charset "UTF-8";*/
 
 .wrapper {
-    background-color: rgb(224, 222, 222);
+  background-color: rgb(224, 222, 222);
 }
 .cell1 {
-    font-size: 20px;
-    background-color: rgb(83, 85, 84);
-    color: mediumaquamarine;
+  font-size: 20px;
+  background-color: rgb(83, 85, 84);
+  color: mediumaquamarine;
 }
 .red {
-    background-color: rgb(8, 212, 154);
-    color: azure;
+  background-color: rgb(8, 212, 154);
+  color: azure;
 }
 .rei1 {
-    border-top:double 5px black;
-    border-left:double 5px black;
-    border-right:double 5px black;
+  border-top: double 5px black;
+  border-left: double 5px black;
+  border-right: double 5px black;
 }
 .rei2 {
-    border-bottom:double 5px black;
-    border-left:double 5px black;
-    border-right:double 5px black;
+  border-bottom: double 5px black;
+  border-left: double 5px black;
+  border-right: double 5px black;
 }
 footer {
-    background-color: black;
-    color: white;
-    padding:10px;
+  background-color: black;
+  color: white;
+  padding: 10px;
 }
 header {
-    background-color: rgb(83, 85, 84);
-    display: flex;
-    width: 100%;
+  background-color: rgb(83, 85, 84);
+  display: flex;
+  width: 100%;
 }
-@import url('https://fonts.googleapis.com/css2?family=Sacramento&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Sacramento&display=swap");
 .title {
-    color: rgb(209, 248, 234);
-    font-family: 'Sacramento', cursive;
+  color: rgb(209, 248, 234);
+  font-family: "Sacramento", cursive;
 }
 li {
-    color: mediumaquamarine;
-    list-style: none;
-    display: inline-block;
-    padding: 10px;
-    font-family: 'Sacramento', cursive;
+  color: mediumaquamarine;
+  list-style: none;
+  display: inline-block;
+  padding: 10px;
+  font-family: "Sacramento", cursive;
 }
 .mainname {
-    font-family: 'Amatic SC', cursive;
+  font-family: "Amatic SC", cursive;
 }
 main {
-    margin: 0px 60px 0px 60px;
+  margin: 0px 60px 0px 60px;
 }
-input, textarea {
-    border: 10px;
+input,
+textarea {
+  border: 10px;
 }
 a {
-    color: mediumaquamarine;
-  }
+  color: mediumaquamarine;
+}
