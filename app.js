@@ -75,13 +75,6 @@ app.use(express.urlencoded({ extended: true}))
 app.use(express.static('public'));
 app.set("view engine", "ejs");
 
-const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "password",
-  database: "list_app",
-});
-
 app.get("/", (req, res) => {
   res.render("index.ejs");
 });
