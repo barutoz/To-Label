@@ -14,15 +14,20 @@
   </head>
   <body style="background-color: rgb(249, 245, 253);">
     <header class="pt-3" style="padding-left: 1.1rem;">
-      <a href="/"><h2 class="title">No title</h2></a>
-      <nav class="nav">
-      <ul>
-      <a href="/home"><li>Home</li></a>
-      <a href="/profile"><li>profile</li></a>
-      <li>Music</li>
-      <li></li>
-      </ul>
-      </nav>
+        <a href="/"><h2 class="title">No title</h2></a>
+        <nav class="nav">
+          <ul>
+            <a href="/login"><li>login</li></a>
+            <a href="/home"><li>Home</li></a>
+            <a href="/profile"><li>Profile</li></a>
+            <li>Music</li>
+            <li>
+              <form action="/logout" method="POST">
+                <button type="submit">ログアウト</button>
+              </form>
+            </li>
+          </ul>
+        </nav>
       </header>
     <main class="m-4">
 

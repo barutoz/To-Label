@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Hello World</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <a href="/"><h2 class="title">No title</h2></a>
+    <nav class="nav">
+      <ul>
+        <a href="/home"><li>Home</li></a>
+        <a href="/profile"><li>Profile</li></a>
+        <li>Music</li>
+        <li></li>
+      </ul>
+    </nav>
+  </header>
+
+  <h1>新規登録</h1>
+  <form id="signup-form" action="/signup" method="post">
+    <label for="username">ユーザー名:</label>
+    <input type="text" id="username" name="username" required><br><br>
+
+    <label for="password">パスワード:</label>
+    <input type="password" id="password" name="password" required><br><br>
+
+    <!-- CSRF トークンを追加 -->
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <input type="submit" value="新規登録">
+  </form>
+
+  <script src="/send_url.js"></script>
+</body>
+</html>
