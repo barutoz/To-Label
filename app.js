@@ -1,5 +1,4 @@
 const express = require('express');
-const mysql = require('mysql');
 const app = express();////きなみともや
 const multer = require('multer'); // ファイルのアップロードを処理するためのミドルウェア
 const path = require('path');
