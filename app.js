@@ -101,7 +101,6 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   // ユーザーの検索
   db.all("SELECT * FROM users", function (error, row) {
-    console.log(row);
     for (let i = 0; i < row.length; i++) {
       if (req.body.username == row[i]["username"]) {
         if (req.body.password == row[i]["password"]) {
@@ -215,7 +214,6 @@ app.post("/room", (req, res) => {
     req.session.destroy;
     return res.redirect("/login");
   }
-  console.log(req.body.room);
   db.all("select * from room_number", function (err, row) {
     for (let i = 0; i < row.length; i++) {
       if (row[i]["number"] == req.body.room) {
@@ -254,18 +252,25 @@ app.get("/room/*", (req, res) => {
     }
     db.all("select * from room_number", function (err, row) {
       for (let i = 0; i < row.length; i++) {
-        if (row[i]["number"] == req.session.team_number) {
+        if (row[i]["id"] == req.session.team_number) {
           if (row[i]["authorization"] == req.session.authorization) {
             var modal = true;
+            var password = row[i]["number"];
+            break;
           } else {
             req.session.destroy;
             return res.redirect("/login");
           }
         }
       }
+      console.log(password);
+      username = req.session.username;
+      return res.render("entry.ejs", {
+        username: username,
+        password: password,
+      });
     });
   }
-  res.render("2.ejs", { messages: messages });
 });
 
 app.post("/random", (req, res) => {
@@ -294,6 +299,11 @@ app.post("/random", (req, res) => {
             authorization +
             '" ( "id"	INTEGER NOT NULL UNIQUE, "from"	TEXT NOT NULL, "to"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, PRIMARY KEY("id" AUTOINCREMENT) );'
         );
+        db.run(
+          'CREATE TABLE "' +
+            authorization +
+            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,PRIMARY KEY("id" AUTOINCREMENT));'
+        );
       });
     });
     if (number < 1000) {
@@ -307,7 +317,6 @@ app.post("/random", (req, res) => {
     } else {
       new_number = String(number);
     }
-    console.log(new_number);
     res.send(new_number);
   } else {
     res.send(false);
@@ -411,16 +420,6 @@ app.post("/profile", (req, res) => {
     req.session.destroy;
     return res.redirect("/login");
   }
-});
-
-app.post("/2", (req, res) => {
-  if (req.session.username == false) {
-    req.session.destroy;
-    return res.redirect("/login");
-  }
-  const message = req.body.message;
-  messages.push(message); // メッセージを配列に追加
-  return res.redirect("/room/" + req.session.team_number); // 2.ejsにリダイレクト
 });
 
 server.listen(3000, () =>
