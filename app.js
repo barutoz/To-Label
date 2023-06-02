@@ -28,7 +28,7 @@ let messages = [];
 
 function number_check(number) {
   if ((number = 0)) {
-    var exists = true;
+    return false;
   } else {
     db.all("select number from room_number", function (err, row) {
       for (var ini = 0; ini < row.length; ini++) {
@@ -36,12 +36,12 @@ function number_check(number) {
           var exists = true;
         }
       }
+      if (exists) {
+        return false;
+      } else {
+        return true;
+      }
     });
-  }
-  if (exists) {
-    return false;
-  } else {
-    return true;
   }
 }
 
