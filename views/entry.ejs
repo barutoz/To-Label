@@ -55,18 +55,25 @@
         <p>チーム入室用パスワード:<%= password %></p>
         <table class="table">
           <thead>
-            <tr class="table-info">
+            <tr class="table-dark">
               <th scope="col">#</th>
               <th scope="col">player</th>
               <th scope="col">OK!</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="table-light">
+            <tr class="table-primary">
               <th scope="row">1</th>
-              <td><%= username %></td>
+              <td class="font-weight-bold"><%= username %></td>
               <td><button class="btn btn-danger">準備OK</button></td>
             </tr>
+            <% user_list.forEach(element => {%>
+            <tr class="table-light">
+              <th scope="row"><%= element.id %></th>
+              <td><%= element.user %></td>
+              <td>OK!</td>
+            </tr>
+            <%});%>
           </tbody>
         </table>
       </div>

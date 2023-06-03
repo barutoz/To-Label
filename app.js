@@ -264,11 +264,42 @@ app.get("/room/*", (req, res) => {
         }
       }
       if (exists) {
-        console.log(password);
-        username = req.session.username;
-        return res.render("entry.ejs", {
-          username: username,
-          password: password,
+        db.serialize(() => {
+          db.all(
+            "select * from " + req.session.authorization + "_userslist",
+            function (err, row) {
+              console.log(row);
+              for (let i = 0; i < row.length; i++) {
+                if (row[i]["user"] == req.session.username) {
+                  var self_exists = true;
+                  var new_i = i;
+                  break;
+                } else {
+                  self_exists = false;
+                }
+              }
+              if (self_exists) {
+                row.splice(new_i, 1);
+              } else {
+                db.run(
+                  "INSERT INTO " +
+                    req.session.authorization +
+                    "_userslist (user) VALUES('" +
+                    req.session.username +
+                    "');"
+                );
+              }
+              for (let i = 0; i < row.length; i++) {
+                row[i]["id"] = String(i + 2);
+              }
+              username = req.session.username;
+              return res.render("entry.ejs", {
+                username: username,
+                password: password,
+                user_list: row,
+              });
+            }
+          );
         });
       } else {
         req.session.destroy;
@@ -307,7 +338,7 @@ app.post("/random", (req, res) => {
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,PRIMARY KEY("id" AUTOINCREMENT));'
+            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,"permission"	INTEGER NOT NULL, PRIMARY KEY("id" AUTOINCREMENT));'
         );
       });
     });
