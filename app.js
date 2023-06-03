@@ -86,6 +86,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+
 app.get("/", (req, res) => {
   res.render("index.ejs");
 });
@@ -284,9 +291,9 @@ app.get("/room/*", (req, res) => {
                 db.run(
                   "INSERT INTO " +
                     req.session.authorization +
-                    "_userslist (user) VALUES('" +
+                    "_userslist (user,permission) VALUES('" +
                     req.session.username +
-                    "');"
+                    "',0);"
                 );
               }
               for (let i = 0; i < row.length; i++) {
@@ -322,13 +329,13 @@ app.post("/random", (req, res) => {
       var rowrow = row.length + 1;
       db.serialize(() => {
         db.run(
-          "INSERT INTO room_number (id,number,authorization) VALUES(" +
+          "INSERT INTO room_number (id,number,authorization,permission) VALUES(" +
             String(rowrow) +
             "," +
             String(number) +
             ',"' +
             authorization +
-            '")'
+            '",0)'
         );
         db.run(
           'CREATE TABLE "' +

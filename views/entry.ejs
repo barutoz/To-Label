@@ -24,6 +24,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="/css/style.css" />
     <script src="/send_url.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
   </head>
   <body style="background-color: rgb(249, 245, 253)">
     <header class="pt-3" style="padding-left: 1.1rem">
@@ -64,19 +65,43 @@
           <tbody>
             <tr class="table-primary">
               <th scope="row">1</th>
-              <td class="font-weight-bold"><%= username %></td>
-              <td><button class="btn btn-danger">準備OK</button></td>
+              <td><p style="font-weight: bold"><%= username %></p></td>
+              <td>
+                <button class="btn btn-success" id="prepare">
+                  <p style="font-weight: bold; margin-bottom: 0px">準備OK</p>
+                </button>
+              </td>
             </tr>
             <% user_list.forEach(element => {%>
             <tr class="table-light">
               <th scope="row"><%= element.id %></th>
               <td><%= element.user %></td>
-              <td>OK!</td>
+              <% if (element.permission==1){%>
+              <td>
+                <p class="text-success" style="font-weight: bold">準備OK!</p>
+              </td>
+              <%}else{%>
+              <td>
+                <p class="text-danger" style="font-weight: bold">準備中...</p>
+              </td>
+              <%}%>
             </tr>
             <%});%>
           </tbody>
         </table>
       </div>
     </main>
+    <script>
+      var socket = io();
+      $("#prepare").click(function () {
+        if ($(this).attr("class") == "btn btn-success") {
+          $(this).children("p").text("準備中...");
+          $(this).attr("class", "btn btn-danger");
+        } else {
+          $(this).children("p").text("準備OK!");
+          $(this).attr("class", "btn btn-success");
+        }
+      });
+    </script>
   </body>
 </html>
