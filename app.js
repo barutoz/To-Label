@@ -243,32 +243,37 @@ app.get("/room/*", (req, res) => {
   var query = req.originalUrl;
   var query_number = query.split("/");
   if (req.session.team_number == false) {
-    var modal = true;
+    return res.redirect("/home");
   } else {
-    if (query_number[2] == req.session.team_number) {
-      var modal = false;
-    } else {
-      var modal = true;
+    if (!(query_number[2] == req.session.team_number)) {
+      return res.redirect("/home");
     }
     db.all("select * from room_number", function (err, row) {
       for (let i = 0; i < row.length; i++) {
         if (row[i]["id"] == req.session.team_number) {
           if (row[i]["authorization"] == req.session.authorization) {
-            var modal = true;
             var password = row[i]["number"];
+            var exists = true;
             break;
           } else {
             req.session.destroy;
             return res.redirect("/login");
           }
+        } else {
+          var exists = false;
         }
       }
-      console.log(password);
-      username = req.session.username;
-      return res.render("entry.ejs", {
-        username: username,
-        password: password,
-      });
+      if (exists) {
+        console.log(password);
+        username = req.session.username;
+        return res.render("entry.ejs", {
+          username: username,
+          password: password,
+        });
+      } else {
+        req.session.destroy;
+        return res.redirect("/login");
+      }
     });
   }
 });
