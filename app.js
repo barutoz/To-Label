@@ -10,18 +10,18 @@ const http = require("http");
 var server = http.createServer(app);
 var io = require("socket.io")(server);
 
-app.use(
-  session({
-    secret: "secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: false,
-      maxage: 1000 * 60 * 30,
-    },
-  })
-);
+const sessionMiddleware = session({
+  secret: "secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false,
+    maxage: 1000 * 60 * 30,
+  },
+});
+app.use(sessionMiddleware);
+io.engine.use(sessionMiddleware);
 
 // メッセージの配列を初期化
 let messages = [];
@@ -158,66 +158,40 @@ app.set("view engine", "ejs");
 io.on("connection", (socket) => {
   console.log("a user connected");
 
-  socket.on("team-join", (msg) => {
-    socket.join(msg);
+  socket.on("team-join", () => {
+    if (socket.request.session.authorization) {
+      socket.join(socket.request.session.authorization);
+    }
   });
 
   socket.on("prepare", (msg) => {
-    if (Array.isArray(msg)) {
-      if (msg.length == 3) {
-        db.all("SELECT * FROM room_number", function (err, row) {
-          for (let i = 0; i < row.length; i++) {
-            if (row[i]["socket"] == msg[0]) {
-              var authorization = row[i]["authorization"];
-              var error = true;
-              break;
-            } else {
-              var error = false;
-            }
-          }
-          if (error) {
-            db.all(
-              "SELECT * FROM " + authorization + "_userslist",
-              function (err, row) {
-                for (let i = 0; i < row.length; i++) {
-                  if (row[i]["authorization"] == msg[1]) {
-                    var error2 = true;
-                    break;
-                  } else {
-                    var error2 = false;
-                  }
-                }
-                if (error2) {
-                  if (msg[2] == true) {
-                    db.serialize(() => {
-                      db.run(
-                        "UPDATE " +
-                          authorization +
-                          "_userslist SET permission=1 WHERE authorization='" +
-                          msg[1] +
-                          "'"
-                      );
-                    });
-                    var content = [msg[1], true];
-                    io.to(msg[0]).emit("prepre", content);
-                  } else {
-                    db.serialize(() => {
-                      db.run(
-                        "UPDATE " +
-                          authorization +
-                          "_userslist SET permission=0 WHERE authorization='" +
-                          msg[1] +
-                          "'"
-                      );
-                    });
-                    var content = [msg[1], false];
-                    io.to(msg[0]).emit("prepre", content);
-                  }
-                }
-              }
-            );
-          }
+    if (socket.request.session.authorization) {
+      var authorization = socket.request.session.authorization;
+      var user_authorization = socket.request.session.user_authorization;
+      if (msg == true) {
+        db.serialize(() => {
+          db.run(
+            "UPDATE " +
+              authorization +
+              "_userslist SET permission=1 WHERE authorization='" +
+              user_authorization +
+              "'"
+          );
         });
+        var content = [user_authorization, true];
+        io.to(authorization).emit("prepre", content);
+      } else {
+        db.serialize(() => {
+          db.run(
+            "UPDATE " +
+              authorization +
+              "_userslist SET permission=0 WHERE authorization='" +
+              user_authorization +
+              "'"
+          );
+        });
+        var content = [user_authorization, false];
+        io.to(authorization).emit("prepre", content);
       }
     }
   });
@@ -446,7 +420,6 @@ app.get("/room/*", (req, res) => {
                 username: username,
                 password: password,
                 user_list: row,
-                team_code: team_code,
                 self_authorization: self_authorization,
               });
             }

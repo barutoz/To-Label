@@ -93,18 +93,15 @@
     </main>
     <script>
       var socket = io();
-      const team_code = "<%= team_code %>";
       const self_authorization = "<%= self_authorization %>";
       $(window).on("load", function () {
-        socket.emit("team-join", team_code);
+        socket.emit("team-join");
       });
       $("#prepare").click(function () {
         if ($(this).attr("class") == "btn btn-success") {
-          var content = [team_code, self_authorization, true];
-          socket.emit("prepare", content);
+          socket.emit("prepare", true);
         } else {
-          var content = [team_code, self_authorization, false];
-          socket.emit("prepare", content);
+          socket.emit("prepare", false);
         }
       });
       socket.on("prepre", function (msg) {
