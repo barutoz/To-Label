@@ -100,17 +100,46 @@
       });
       $("#prepare").click(function () {
         if ($(this).attr("class") == "btn btn-success") {
-          $(this).children("p").text("準備中...");
-          $(this).attr("class", "btn btn-danger");
-          var content = [team_code, "hello"];
+          var content = [team_code, self_authorization, true];
           socket.emit("prepare", content);
         } else {
-          $(this).children("p").text("準備OK!");
-          $(this).attr("class", "btn btn-success");
+          var content = [team_code, self_authorization, false];
+          socket.emit("prepare", content);
         }
       });
       socket.on("prepre", function (msg) {
         console.log(msg);
+        if (Array.isArray(msg)) {
+          if (msg.length == 2) {
+            if (msg[0] == self_authorization) {
+              if (msg[1]) {
+                $("#prepare").children("p").text("準備中...");
+                $("#prepare").attr("class", "btn btn-danger");
+              } else {
+                $("#prepare").children("p").text("準備OK!");
+                $("#prepare").attr("class", "btn btn-success");
+              }
+            } else {
+              if ($("#" + msg[0]).length) {
+                if (msg[1]) {
+                  $("#" + msg[0])
+                    .find("p")
+                    .text("準備OK!");
+                  $("#" + msg[0])
+                    .find("p")
+                    .attr("class", "text-success");
+                } else {
+                  $("#" + msg[0])
+                    .find("p")
+                    .text("準備中...");
+                  $("#" + msg[0])
+                    .find("p")
+                    .attr("class", "text-danger");
+                }
+              }
+            }
+          }
+        }
       });
     </script>
   </body>

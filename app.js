@@ -157,16 +157,71 @@ app.set("view engine", "ejs");
 
 io.on("connection", (socket) => {
   console.log("a user connected");
+
   socket.on("team-join", (msg) => {
     socket.join(msg);
   });
+
   socket.on("prepare", (msg) => {
     if (Array.isArray(msg)) {
-      if (msg.length == 2) {
-        io.to(msg[0]).emit("prepre", msg[1]);
+      if (msg.length == 3) {
+        db.all("SELECT * FROM room_number", function (err, row) {
+          for (let i = 0; i < row.length; i++) {
+            if (row[i]["socket"] == msg[0]) {
+              var authorization = row[i]["authorization"];
+              var error = true;
+              break;
+            } else {
+              var error = false;
+            }
+          }
+          if (error) {
+            db.all(
+              "SELECT * FROM " + authorization + "_userslist",
+              function (err, row) {
+                for (let i = 0; i < row.length; i++) {
+                  if (row[i]["authorization"] == msg[1]) {
+                    var error2 = true;
+                    break;
+                  } else {
+                    var error2 = false;
+                  }
+                }
+                if (error2) {
+                  if (msg[2] == true) {
+                    db.serialize(() => {
+                      db.run(
+                        "UPDATE " +
+                          authorization +
+                          "_userslist SET permission=1 WHERE authorization='" +
+                          msg[1] +
+                          "'"
+                      );
+                    });
+                    var content = [msg[1], true];
+                    io.to(msg[0]).emit("prepre", content);
+                  } else {
+                    db.serialize(() => {
+                      db.run(
+                        "UPDATE " +
+                          authorization +
+                          "_userslist SET permission=0 WHERE authorization='" +
+                          msg[1] +
+                          "'"
+                      );
+                    });
+                    var content = [msg[1], false];
+                    io.to(msg[0]).emit("prepre", content);
+                  }
+                }
+              }
+            );
+          }
+        });
       }
     }
   });
+
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
