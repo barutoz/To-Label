@@ -159,6 +159,7 @@ io.on("connection", (socket) => {
               "'"
           );
         });
+
         var content = [user_authorization, true];
         io.to(authorization).emit("prepre", content);
       } else {
