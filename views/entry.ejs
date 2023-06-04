@@ -93,14 +93,23 @@
     </main>
     <script>
       var socket = io();
+      const team_code = "<%= team_code %>";
+      $(window).on("load", function () {
+        socket.emit("team-join", team_code);
+      });
       $("#prepare").click(function () {
         if ($(this).attr("class") == "btn btn-success") {
           $(this).children("p").text("準備中...");
           $(this).attr("class", "btn btn-danger");
+          var content = [team_code, "hello"];
+          socket.emit("prepare", content);
         } else {
           $(this).children("p").text("準備OK!");
           $(this).attr("class", "btn btn-success");
         }
+      });
+      socket.on("prepre", function (msg) {
+        console.log(msg);
       });
     </script>
   </body>

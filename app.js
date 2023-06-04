@@ -88,6 +88,16 @@ app.set("view engine", "ejs");
 
 io.on("connection", (socket) => {
   console.log("a user connected");
+  socket.on("team-join", (msg) => {
+    socket.join(msg);
+  });
+  socket.on("prepare", (msg) => {
+    if (Array.isArray(msg)) {
+      if (msg.length == 2) {
+        io.to(msg[0]).emit("prepre", msg[1]);
+      }
+    }
+  });
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
@@ -300,10 +310,12 @@ app.get("/room/*", (req, res) => {
                 row[i]["id"] = String(i + 2);
               }
               username = req.session.username;
+              team_code = req.session.authorization;
               return res.render("entry.ejs", {
                 username: username,
                 password: password,
                 user_list: row,
+                team_code: team_code,
               });
             }
           );
