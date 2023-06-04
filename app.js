@@ -95,17 +95,6 @@ function check_user(authorization) {
   });
 }
 
-function check_socket(authorization) {
-  db.all("select * from room_number", function (err, row) {
-    for (let i = 0; i < row.length; i++) {
-      if (row[i]["socket"] == authorization) {
-        return true;
-      }
-    }
-    return false;
-  });
-}
-
 function create_authorization() {
   var authorization = createPassword();
   if (!check_authorization(authorization)) {
@@ -124,18 +113,6 @@ function create_user() {
     return authorization;
   } else {
     while (check_user(authorization) == false) {
-      var authorization = createPassword();
-    }
-    return authorization;
-  }
-}
-
-function create_socket() {
-  var authorization = createPassword();
-  if (!check_socket(authorization)) {
-    return authorization;
-  } else {
-    while (check_socket(authorization) == false) {
       var authorization = createPassword();
     }
     return authorization;
@@ -372,7 +349,6 @@ app.get("/room/*", (req, res) => {
           if (row[i]["authorization"] == req.session.authorization) {
             var password = row[i]["number"];
             var exists = true;
-            var socket = row[i]["socket"];
             break;
           } else {
             req.session.destroy;
@@ -414,7 +390,6 @@ app.get("/room/*", (req, res) => {
                 row[i]["id"] = String(i + 2);
               }
               username = req.session.username;
-              team_code = socket;
               self_authorization = req.session.user_authorization;
               return res.render("entry.ejs", {
                 username: username,
@@ -442,20 +417,17 @@ app.post("/random", (req, res) => {
     var number = Math.floor(Math.random() * 10000);
     var number = number_generate(number);
     var authorization = create_authorization();
-    var socket = create_socket();
     db.all("select number from room_number", function (err, row) {
       var rowrow = row.length + 1;
       db.serialize(() => {
         db.run(
-          "INSERT INTO room_number (id,number,authorization,permission,socket) VALUES(" +
+          "INSERT INTO room_number (id,number,authorization,permission) VALUES(" +
             String(rowrow) +
             "," +
             String(number) +
             ',"' +
             authorization +
-            '",0,"' +
-            socket +
-            '")'
+            '",0)'
         );
         db.run(
           'CREATE TABLE "' +
