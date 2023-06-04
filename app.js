@@ -177,6 +177,13 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("time", (msg) => {
+    if (socket.request.session.authorization) {
+      var authorization = socket.request.session.authorization;
+      io.to(authorization).emit("time_update", msg);
+    }
+  });
+
   socket.on("disconnect", () => {
     var authorization = socket.request.session.authorization;
     var user_authorization = socket.request.session.user_authorization;

@@ -89,22 +89,26 @@
             <%});%>
           </tbody>
         </table>
-        <div class="row g-3 align-items-center">
-          <div class="col-auto">
-            <label for="inputPassword6" class="col-form-label"
+        <div class="row g-3 align-items-center mt-2">
+          <div class="col-8">
+            <label for="time" class="col-form-label" style="font-weight: bold"
               >制限時間を入力(min)</label
             >
           </div>
-          <div class="col-auto">
+          <div class="col-4">
             <div class="input-group">
-              <button type="button" class="btn btn-primary">+</button>
+              <button type="button" class="btn btn-primary" id="btn+">+</button>
               <input
                 type="number"
-                id="inputPassword6"
+                id="time"
                 class="form-control"
+                value="5"
+                style="text-align: right"
                 disabled
               />
-              <button type="button" class="btn btn-primary">-</button>
+              <button type="button" class="btn btn-primary" id="btn-">
+                ー
+              </button>
             </div>
           </div>
         </div>
@@ -122,6 +126,19 @@
         } else {
           socket.emit("prepare", false);
         }
+      });
+      $("#time")
+        .prev("button")
+        .click(function () {
+          var now = $("#time").val();
+          socket.emit("time", Number(now) + 1);
+        });
+      $("#btn-").click(function () {
+        var now = $("#time").val();
+        socket.emit("time", Number(now) - 1);
+      });
+      socket.on("time_update", function (msg) {
+        $("#time").val(Number(msg));
       });
       socket.on("prepre", function (msg) {
         console.log(msg);
@@ -172,6 +189,7 @@
                 msg[1] +
                 "</td><td><p class='text-danger' style='font-weight: bold'>準備中...</p></td></tr>";
               $("#unko").append(content);
+              socket.emit("time", $("#time").val());
             }
           }
         }
