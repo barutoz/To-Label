@@ -386,11 +386,13 @@ app.get("/room/*", (req, res) => {
               }
               username = req.session.username;
               team_code = socket;
+              self_authorization = req.session.user_authorization;
               return res.render("entry.ejs", {
                 username: username,
                 password: password,
                 user_list: row,
                 team_code: team_code,
+                self_authorization: self_authorization,
               });
             }
           );

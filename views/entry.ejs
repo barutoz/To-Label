@@ -73,7 +73,7 @@
               </td>
             </tr>
             <% user_list.forEach(element => {%>
-            <tr class="table-light">
+            <tr class="table-light" id="<%= element.authorization %>">
               <th scope="row"><%= element.id %></th>
               <td><%= element.user %></td>
               <% if (element.permission==1){%>
@@ -94,6 +94,7 @@
     <script>
       var socket = io();
       const team_code = "<%= team_code %>";
+      const self_authorization = "<%= self_authorization %>";
       $(window).on("load", function () {
         socket.emit("team-join", team_code);
       });
