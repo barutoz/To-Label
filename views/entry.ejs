@@ -62,9 +62,9 @@
               <th scope="col">OK!</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="unko">
             <tr class="table-primary">
-              <th scope="row">1</th>
+              <th scope="row">player1(YOU)</th>
               <td><p style="font-weight: bold"><%= username %></p></td>
               <td>
                 <button class="btn btn-success" id="prepare">
@@ -74,7 +74,7 @@
             </tr>
             <% user_list.forEach(element => {%>
             <tr class="table-light" id="<%= element.authorization %>">
-              <th scope="row"><%= element.id %></th>
+              <th scope="row">player<%= element.id %></th>
               <td><%= element.user %></td>
               <% if (element.permission==1){%>
               <td>
@@ -136,6 +136,30 @@
               }
             }
           }
+        }
+      });
+      socket.on("join-join", function (msg) {
+        console.log(msg);
+        if (Array.isArray(msg)) {
+          if (msg.length == 2) {
+            if (msg[0] !== self_authorization) {
+              var player_number = $("#unko").children("tr").length;
+              var content =
+                "<tr class='table-light' id=" +
+                msg[0] +
+                "><th scope='row'>player" +
+                String(player_number + 1) +
+                "</th><td>" +
+                msg[1] +
+                "</td><td><p class='text-danger' style='font-weight: bold'>準備中...</p></td></tr>";
+              $("#unko").append(content);
+            }
+          }
+        }
+      });
+      socket.on("leave", function (msg) {
+        if ($("#" + msg).length) {
+          $("#" + msg).remove();
         }
       });
     </script>

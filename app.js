@@ -138,6 +138,10 @@ io.on("connection", (socket) => {
   socket.on("team-join", () => {
     if (socket.request.session.authorization) {
       socket.join(socket.request.session.authorization);
+      io.to(socket.request.session.authorization).emit("join-join", [
+        socket.request.session.user_authorization,
+        socket.request.session.username,
+      ]);
     }
   });
 
@@ -174,7 +178,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    var authorization = socket.request.session.authorization;
+    var user_authorization = socket.request.session.user_authorization;
+    if (authorization) {
+      db.serialize(() => {
+        db.run(
+          "DELETE FROM " +
+            authorization +
+            "_userslist WHERE authorization='" +
+            user_authorization +
+            "'"
+        );
+      });
+      io.to(authorization).emit("leave", user_authorization);
+      console.log("user disconnected");
+    }
   });
 });
 
