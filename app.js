@@ -73,6 +73,75 @@ const createPassword = () => {
   return password;
 };
 
+function check_authorization(authorization) {
+  db.all("select * from room_number", function (err, row) {
+    for (let i = 0; i < row.length; i++) {
+      if (row[i]["authorization"] == authorization) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
+function check_user(authorization) {
+  db.all("select * from users", function (err, row) {
+    for (let i = 0; i < row.length; i++) {
+      if (row[i]["authorization"] == authorization) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
+function check_socket(authorization) {
+  db.all("select * from room_number", function (err, row) {
+    for (let i = 0; i < row.length; i++) {
+      if (row[i]["socket"] == authorization) {
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
+function create_authorization() {
+  var authorization = createPassword();
+  if (!check_authorization(authorization)) {
+    return authorization;
+  } else {
+    while (check_authorization(authorization) == false) {
+      var authorization = createPassword();
+    }
+    return authorization;
+  }
+}
+
+function create_user() {
+  var authorization = createPassword();
+  if (!check_user(authorization)) {
+    return authorization;
+  } else {
+    while (check_user(authorization) == false) {
+      var authorization = createPassword();
+    }
+    return authorization;
+  }
+}
+
+function create_socket() {
+  var authorization = createPassword();
+  if (!check_socket(authorization)) {
+    return authorization;
+  } else {
+    while (check_socket(authorization) == false) {
+      var authorization = createPassword();
+    }
+    return authorization;
+  }
+}
+
 // CSRF トークンの生成関数
 function generateCSRFToken() {
   // ランダムなトークンを生成
@@ -122,6 +191,7 @@ app.post("/login", (req, res) => {
       if (req.body.username == row[i]["username"]) {
         if (req.body.password == row[i]["password"]) {
           var login_id = row[i]["id"];
+          var authorization = row[i]["authorization"];
           var login = true;
           break;
         } else {
@@ -134,6 +204,7 @@ app.post("/login", (req, res) => {
     if (login) {
       req.session.userId = login_id;
       req.session.username = req.body.username;
+      req.session.user_authorization = authorization;
       return res.redirect("/home");
     } else {
       req.session.destroy;
@@ -184,10 +255,11 @@ app.post("/signup", (req, res) => {
             message: "別のパスワードにしてください。",
           });
         } else {
+          var authorization = create_user();
           db.serialize(() => {
             db.run(
-              "INSERT INTO users (username, password) VALUES (?, ?)",
-              [username, password],
+              "INSERT INTO users (username, password, authorization) VALUES (?, ?, ?)",
+              [username, password, authorization],
               (err) => {
                 if (err) {
                   console.error(err.message);
@@ -227,7 +299,7 @@ app.get("/home", (req, res) => {
 });
 
 app.post("/room", (req, res) => {
-  if (req.session.username == false) {
+  if (req.session.user_authorization == false) {
     req.session.destroy;
     return res.redirect("/login");
   }
@@ -271,6 +343,7 @@ app.get("/room/*", (req, res) => {
           if (row[i]["authorization"] == req.session.authorization) {
             var password = row[i]["number"];
             var exists = true;
+            var socket = row[i]["socket"];
             break;
           } else {
             req.session.destroy;
@@ -301,16 +374,18 @@ app.get("/room/*", (req, res) => {
                 db.run(
                   "INSERT INTO " +
                     req.session.authorization +
-                    "_userslist (user,permission) VALUES('" +
+                    "_userslist (user,permission,authorization) VALUES('" +
                     req.session.username +
-                    "',0);"
+                    "',0,'" +
+                    req.session.user_authorization +
+                    "');"
                 );
               }
               for (let i = 0; i < row.length; i++) {
                 row[i]["id"] = String(i + 2);
               }
               username = req.session.username;
-              team_code = req.session.authorization;
+              team_code = socket;
               return res.render("entry.ejs", {
                 username: username,
                 password: password,
@@ -329,25 +404,28 @@ app.get("/room/*", (req, res) => {
 });
 
 app.post("/random", (req, res) => {
-  if (req.session.username == false) {
+  if (req.session.user_authorization == false) {
     req.session.destroy;
     return res.redirect("/login");
   }
   if (req.body.random == "true") {
     var number = Math.floor(Math.random() * 10000);
     var number = number_generate(number);
-    var authorization = createPassword();
+    var authorization = create_authorization();
+    var socket = create_socket();
     db.all("select number from room_number", function (err, row) {
       var rowrow = row.length + 1;
       db.serialize(() => {
         db.run(
-          "INSERT INTO room_number (id,number,authorization,permission) VALUES(" +
+          "INSERT INTO room_number (id,number,authorization,permission,socket) VALUES(" +
             String(rowrow) +
             "," +
             String(number) +
             ',"' +
             authorization +
-            '",0)'
+            '",0,"' +
+            socket +
+            '")'
         );
         db.run(
           'CREATE TABLE "' +
@@ -357,7 +435,7 @@ app.post("/random", (req, res) => {
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,"permission"	INTEGER NOT NULL, PRIMARY KEY("id" AUTOINCREMENT));'
+            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,"permission"	INTEGER NOT NULL, "authorization"	TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT));'
         );
       });
     });
