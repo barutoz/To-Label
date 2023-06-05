@@ -175,10 +175,27 @@ io.on("connection", (socket) => {
               user_authorization +
               "'"
           );
+          db.all(
+            "SELECT permission FROM " + authorization + "_userslist",
+            function (error, row) {
+              for (let i = 0; i < row.length; i++) {
+                if (row[i]["perimission"] == 0) {
+                  var complete = false;
+                  break;
+                } else {
+                  var complete = true;
+                }
+              }
+              if (complete) {
+                var content = [user_authorization, true, true];
+                io.to(authorization).emit("prepre", content);
+              } else {
+                var content = [user_authorization, true, false];
+                io.to(authorization).emit("prepre", content);
+              }
+            }
+          );
         });
-
-        var content = [user_authorization, true];
-        io.to(authorization).emit("prepre", content);
       } else {
         db.serialize(() => {
           db.run(
@@ -189,7 +206,7 @@ io.on("connection", (socket) => {
               "'"
           );
         });
-        var content = [user_authorization, false];
+        var content = [user_authorization, false, false];
         io.to(authorization).emit("prepre", content);
       }
     }

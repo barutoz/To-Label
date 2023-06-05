@@ -143,7 +143,7 @@
       socket.on("prepre", function (msg) {
         console.log(msg);
         if (Array.isArray(msg)) {
-          if (msg.length == 2) {
+          if (msg.length == 3) {
             if (msg[0] == self_authorization) {
               if (msg[1]) {
                 $("#prepare").children("p").text("準備中...");
@@ -170,6 +170,9 @@
                     .attr("class", "text-danger");
                 }
               }
+            }
+            if (msg[2]) {
+              console.log("kinamiyo");
             }
           }
         }
