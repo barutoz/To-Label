@@ -128,6 +128,8 @@ function generateCSRFToken() {
   return token;
 }
 
+let time = [];
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -136,11 +138,26 @@ io.on("connection", (socket) => {
   console.log("a user connected");
 
   socket.on("team-join", () => {
-    if (socket.request.session.authorization) {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      console.log(time);
+      for (let i = 0; i < time.length; i++) {
+        if (time[i][0] == authorization) {
+          var time_new = time[i][1];
+          break;
+        } else {
+          var time_new = false;
+        }
+      }
+      if (!time_new) {
+        time_new = 5;
+        time[time.length] = [authorization, time_new];
+      }
       socket.join(socket.request.session.authorization);
       io.to(socket.request.session.authorization).emit("join-join", [
         socket.request.session.user_authorization,
         socket.request.session.username,
+        time_new,
       ]);
     }
   });
@@ -180,8 +197,16 @@ io.on("connection", (socket) => {
 
   socket.on("time", (msg) => {
     if (socket.request.session.authorization) {
-      var authorization = socket.request.session.authorization;
-      io.to(authorization).emit("time_update", msg);
+      if (typeof msg == "number") {
+        var authorization = socket.request.session.authorization;
+        for (let i = 0; i < time.length; i++) {
+          if (time[i][0] == authorization) {
+            time[i][1] = msg;
+            break;
+          }
+        }
+        io.to(authorization).emit("time_update", msg);
+      }
     }
   });
 

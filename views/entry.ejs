@@ -177,7 +177,7 @@
       socket.on("join-join", function (msg) {
         console.log(msg);
         if (Array.isArray(msg)) {
-          if (msg.length == 2) {
+          if (msg.length == 3) {
             if (msg[0] !== self_authorization) {
               var player_number = $("#unko").children("tr").length;
               var content =
@@ -189,7 +189,8 @@
                 msg[1] +
                 "</td><td><p class='text-danger' style='font-weight: bold'>準備中...</p></td></tr>";
               $("#unko").append(content);
-              socket.emit("time", $("#time").val());
+            } else {
+              $("#time").val(msg[2]);
             }
           }
         }
