@@ -129,6 +129,7 @@ function generateCSRFToken() {
 }
 
 let time = [];
+let timer;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -144,7 +145,10 @@ io.on("connection", (socket) => {
       for (let i = 0; i < time.length; i++) {
         if (time[i][0] == authorization) {
           var time_new = time[i][1];
-          var status = time[i][2];
+          if (time[i][2]) {
+            time[i][2] = false;
+            clearTimeout(timer);
+          }
           break;
         } else {
           var time_new = false;
@@ -205,6 +209,15 @@ io.on("connection", (socket) => {
               }
               if (complete) {
                 var content = [user_authorization, true, true];
+                for (let i = 0; i < time.length; i++) {
+                  if (time[i][0] == authorization) {
+                    time[i][2] = true;
+                    timer = setTimeout(function () {
+                      ///続き
+                    }, 3000);
+                    break;
+                  }
+                }
                 io.to(authorization).emit("prepre", content);
               } else {
                 var content = [user_authorization, true, false];
@@ -248,6 +261,15 @@ io.on("connection", (socket) => {
     var authorization = socket.request.session.authorization;
     var user_authorization = socket.request.session.user_authorization;
     if (authorization) {
+      for (let i = 0; i < time.length; i++) {
+        if (time[i][0] == authorization) {
+          if (time[i][2]) {
+            time[i][2] = false;
+            clearTimeout(timer);
+            break;
+          }
+        }
+      }
       db.serialize(() => {
         db.run(
           "DELETE FROM " +
@@ -379,6 +401,9 @@ app.get("/home", (req, res) => {
     if (req.session.team_error) {
       req.session.team_error = false;
       msg = "不正な番号です。";
+    } else if (req.session.team_error2) {
+      req.session.team_error = false;
+      msg = "このセッションは締め切られてます。";
     } else {
       msg = "";
     }
@@ -399,6 +424,7 @@ app.post("/room", (req, res) => {
       if (row[i]["number"] == req.body.room) {
         var team_number = row[i]["id"];
         var authorization = row[i]["authorization"];
+        var permission = row[i]["permission"];
         break;
       } else {
         var team_number = false;
@@ -408,6 +434,23 @@ app.post("/room", (req, res) => {
       req.session.team_error = true;
       return res.redirect("/home");
     } else {
+      if (permission !== 0) {
+        db.all(
+          "select * from " + authorization + "_userslist",
+          function (err, row) {
+            for (let i = 0; i < row.length; i++) {
+              if (row[i]["authorization"] == req.session.user_authorization) {
+                req.session.team_number = team_number;
+                req.session.authorization = authorization;
+                return res.redirect("/room/" + String(team_number));
+              } else {
+                req.session.team_error2 = true;
+                return res.redirect("/home");
+              }
+            }
+          }
+        );
+      }
       req.session.team_number = team_number;
       req.session.authorization = authorization;
       return res.redirect("/room/" + String(team_number));
@@ -433,6 +476,7 @@ app.get("/room/*", (req, res) => {
         if (row[i]["id"] == req.session.team_number) {
           if (row[i]["authorization"] == req.session.authorization) {
             var password = row[i]["number"];
+            var permission = row[i]["permission"];
             var exists = true;
             break;
           } else {
@@ -444,47 +488,63 @@ app.get("/room/*", (req, res) => {
         }
       }
       if (exists) {
-        db.serialize(() => {
-          db.all(
-            "select * from " + req.session.authorization + "_userslist",
-            function (err, row) {
-              console.log(row);
-              for (let i = 0; i < row.length; i++) {
-                if (row[i]["user"] == req.session.username) {
-                  var self_exists = true;
-                  var new_i = i;
-                  break;
+        if (permission == 0) {
+          db.serialize(() => {
+            db.all(
+              "select * from " + req.session.authorization + "_userslist",
+              function (err, row) {
+                console.log(row);
+                for (let i = 0; i < row.length; i++) {
+                  if (row[i]["user"] == req.session.username) {
+                    var self_exists = true;
+                    var new_i = i;
+                    break;
+                  } else {
+                    self_exists = false;
+                  }
+                }
+                if (self_exists) {
+                  row.splice(new_i, 1);
                 } else {
-                  self_exists = false;
+                  db.run(
+                    "INSERT INTO " +
+                      req.session.authorization +
+                      "_userslist (user,permission,authorization) VALUES('" +
+                      req.session.username +
+                      "',0,'" +
+                      req.session.user_authorization +
+                      "');"
+                  );
+                }
+                for (let i = 0; i < row.length; i++) {
+                  row[i]["id"] = String(i + 2);
+                }
+                username = req.session.username;
+                self_authorization = req.session.user_authorization;
+                return res.render("entry.ejs", {
+                  username: username,
+                  password: password,
+                  user_list: row,
+                  self_authorization: self_authorization,
+                });
+              }
+            );
+          });
+        } else {
+          db.all(
+            "select * from " + authorization + "_userslist",
+            function (err, row) {
+              for (let i = 0; i < row.length; i++) {
+                if (row[i]["authorization"] == req.session.user_authorization) {
+                  return res.redirect("room.ejs");
+                } else {
+                  req.session.team_error2 = true;
+                  return res.redirect("/home");
                 }
               }
-              if (self_exists) {
-                row.splice(new_i, 1);
-              } else {
-                db.run(
-                  "INSERT INTO " +
-                    req.session.authorization +
-                    "_userslist (user,permission,authorization) VALUES('" +
-                    req.session.username +
-                    "',0,'" +
-                    req.session.user_authorization +
-                    "');"
-                );
-              }
-              for (let i = 0; i < row.length; i++) {
-                row[i]["id"] = String(i + 2);
-              }
-              username = req.session.username;
-              self_authorization = req.session.user_authorization;
-              return res.render("entry.ejs", {
-                username: username,
-                password: password,
-                user_list: row,
-                self_authorization: self_authorization,
-              });
             }
           );
-        });
+        }
       } else {
         req.session.destroy;
         return res.redirect("/login");
