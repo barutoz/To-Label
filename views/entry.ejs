@@ -44,13 +44,14 @@
       </nav>
     </header>
     <main class="m-4">
-      <div class="mb-4 border-bottom">
-        <h3 class="text-center font-weight-bold">
+      <h1 class="mb-4"><span class="bg-warning">Lobby</span></h1>
+      <div class="mb-4 border-bottom" id="text">
+        <h4 class="text-center font-weight-bold">
           <%= username %>さんは現在以下の部屋に入室しています!
-        </h3>
-        <h3 class="text-center font-weight-bold">
+        </h4>
+        <h4 class="text-center font-weight-bold">
           全てのメンバーが揃ったら、準備OKボタンを押してください!
-        </h3>
+        </h4>
       </div>
       <div class="w-75" style="margin: 0 auto">
         <p>チーム入室用パスワード:<%= password %></p>
@@ -68,7 +69,7 @@
               <td><p style="font-weight: bold"><%= username %></p></td>
               <td>
                 <button class="btn btn-success" id="prepare">
-                  <p style="font-weight: bold; margin-bottom: 0px">準備OK</p>
+                  <p style="font-weight: bold; margin-bottom: 0px">準備OK!</p>
                 </button>
               </td>
             </tr>
@@ -116,6 +117,9 @@
     </main>
     <script>
       var socket = io();
+      let timer;
+      let timer2;
+      let timer3;
       const self_authorization = "<%= self_authorization %>";
       $(window).on("load", function () {
         socket.emit("team-join");
@@ -141,9 +145,13 @@
         $("#time").val(Number(msg));
       });
       socket.on("prepre", function (msg) {
-        console.log(msg);
         if (Array.isArray(msg)) {
           if (msg.length == 3) {
+            clearTimeout(timer);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+            $("#text").children("h1").remove();
+            $("#text").children("h4").show();
             if (msg[0] == self_authorization) {
               if (msg[1]) {
                 $("#prepare").children("p").text("準備中...");
@@ -171,16 +179,33 @@
                 }
               }
             }
-            if (msg[2]) {
-              console.log("kinamiyo");
+            console.log(msg);
+            if (msg[2] == true) {
+              $("#text").children("h4").hide();
+              $("#text").append(
+                "<h1 class='text-danger text-center'>3秒後に始まります。</h1>"
+              );
+              timer = setTimeout(function () {
+                $("#text").children("h1").text("2秒後に始まります。");
+              }, 1000);
+              timer2 = setTimeout(function () {
+                $("#text").children("h1").text("1秒後に始まります。");
+              }, 2000);
+              timer3 = setTimeout(function () {
+                console.log("hello");
+              }, 3000);
             }
           }
         }
       });
       socket.on("join-join", function (msg) {
-        console.log(msg);
         if (Array.isArray(msg)) {
-          if (msg.length == 3) {
+          if (msg.length == 4) {
+            clearTimeout(timer);
+            clearTimeout(timer2);
+            clearTimeout(timer3);
+            $("#text").children("h1").remove();
+            $("#text").children("h4").show();
             if (msg[0] !== self_authorization) {
               var player_number = $("#unko").children("tr").length;
               var content =
@@ -200,6 +225,11 @@
       });
       socket.on("leave", function (msg) {
         if ($("#" + msg).length) {
+          clearTimeout(timer);
+          clearTimeout(timer2);
+          clearTimeout(timer3);
+          $("#text").children("h1").remove();
+          $("#text").children("h4").show();
           $("#" + msg).remove();
         }
       });

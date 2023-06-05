@@ -144,21 +144,34 @@ io.on("connection", (socket) => {
       for (let i = 0; i < time.length; i++) {
         if (time[i][0] == authorization) {
           var time_new = time[i][1];
+          var status = time[i][2];
           break;
         } else {
           var time_new = false;
+          var status = false;
         }
       }
       if (!time_new) {
         time_new = 5;
-        time[time.length] = [authorization, time_new];
+        time[time.length] = [authorization, time_new, false];
       }
-      socket.join(socket.request.session.authorization);
-      io.to(socket.request.session.authorization).emit("join-join", [
-        socket.request.session.user_authorization,
-        socket.request.session.username,
-        time_new,
-      ]);
+      if (!status) {
+        socket.join(socket.request.session.authorization);
+        io.to(socket.request.session.authorization).emit("join-join", [
+          socket.request.session.user_authorization,
+          socket.request.session.username,
+          time_new,
+          false,
+        ]);
+      } else {
+        socket.join(socket.request.session.authorization);
+        io.to(socket.request.session.authorization).emit("join-join", [
+          socket.request.session.user_authorization,
+          socket.request.session.username,
+          time_new,
+          true,
+        ]);
+      }
     }
   });
 
@@ -179,12 +192,16 @@ io.on("connection", (socket) => {
             "SELECT permission FROM " + authorization + "_userslist",
             function (error, row) {
               for (let i = 0; i < row.length; i++) {
-                if (row[i]["perimission"] == 0) {
+                if (row[i]["permission"] == 0) {
                   var complete = false;
                   break;
                 } else {
                   var complete = true;
                 }
+              }
+              console.log(complete);
+              if (row.length < 2) {
+                var complete = false;
               }
               if (complete) {
                 var content = [user_authorization, true, true];
