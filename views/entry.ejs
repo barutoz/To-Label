@@ -119,7 +119,6 @@
       var socket = io();
       let timer;
       let timer2;
-      let timer3;
       const self_authorization = "<%= self_authorization %>";
       $(window).on("load", function () {
         socket.emit("team-join");
@@ -149,7 +148,6 @@
           if (msg.length == 3) {
             clearTimeout(timer);
             clearTimeout(timer2);
-            clearTimeout(timer3);
             $("#text").children("h1").remove();
             $("#text").children("h4").show();
             if (msg[0] == self_authorization) {
@@ -191,9 +189,6 @@
               timer2 = setTimeout(function () {
                 $("#text").children("h1").text("1秒後に始まります。");
               }, 2000);
-              timer3 = setTimeout(function () {
-                console.log("hello");
-              }, 3000);
             }
           }
         }
@@ -203,7 +198,6 @@
           if (msg.length == 4) {
             clearTimeout(timer);
             clearTimeout(timer2);
-            clearTimeout(timer3);
             $("#text").children("h1").remove();
             $("#text").children("h4").show();
             if (msg[0] !== self_authorization) {
@@ -227,10 +221,19 @@
         if ($("#" + msg).length) {
           clearTimeout(timer);
           clearTimeout(timer2);
-          clearTimeout(timer3);
           $("#text").children("h1").remove();
           $("#text").children("h4").show();
           $("#" + msg).remove();
+        }
+      });
+      socket.on("next-before", function (msg) {
+        if (msg) {
+          socket.emit("next-after");
+        }
+      });
+      socket.on("next", function (msg) {
+        if (msg) {
+          window.location.reload();
         }
       });
     </script>

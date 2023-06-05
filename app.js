@@ -7,6 +7,7 @@ const sqlite3 = require("sqlite3");
 const db = new sqlite3.Database("DV.sqlite3");
 var session = require("express-session");
 const http = require("http");
+const { url } = require("inspector");
 var server = http.createServer(app);
 var io = require("socket.io")(server);
 
@@ -141,6 +142,7 @@ io.on("connection", (socket) => {
   socket.on("team-join", () => {
     var authorization = socket.request.session.authorization;
     if (authorization) {
+      socket.request.session.entry = true;
       console.log(time);
       for (let i = 0; i < time.length; i++) {
         if (time[i][0] == authorization) {
@@ -213,7 +215,16 @@ io.on("connection", (socket) => {
                   if (time[i][0] == authorization) {
                     time[i][2] = true;
                     timer = setTimeout(function () {
-                      ///続き
+                      db.serialize(() => {
+                        db.run(
+                          "UPDATE room_number SET permission=1, time=" +
+                            time[i][1] +
+                            " WHERE authorization='" +
+                            authorization +
+                            "'"
+                        );
+                      });
+                      io.to(authorization).emit("next-before", true);
                     }, 3000);
                     break;
                   }
@@ -256,6 +267,10 @@ io.on("connection", (socket) => {
       }
     }
   });
+  socket.on("next-after", () => {
+    socket.request.session.entry = false;
+    socket.emit("next", true);
+  });
 
   socket.on("disconnect", () => {
     var authorization = socket.request.session.authorization;
@@ -270,15 +285,17 @@ io.on("connection", (socket) => {
           }
         }
       }
-      db.serialize(() => {
-        db.run(
-          "DELETE FROM " +
-            authorization +
-            "_userslist WHERE authorization='" +
-            user_authorization +
-            "'"
-        );
-      });
+      if (socket.request.session.entry) {
+        db.serialize(() => {
+          db.run(
+            "DELETE FROM " +
+              authorization +
+              "_userslist WHERE authorization='" +
+              user_authorization +
+              "'"
+          );
+        });
+      }
       io.to(authorization).emit("leave", user_authorization);
       console.log("user disconnected");
     }
@@ -402,7 +419,8 @@ app.get("/home", (req, res) => {
       req.session.team_error = false;
       msg = "不正な番号です。";
     } else if (req.session.team_error2) {
-      req.session.team_error = false;
+      req.session.team_error2 = false;
+      console.log("kon");
       msg = "このセッションは締め切られてます。";
     } else {
       msg = "";
@@ -440,20 +458,28 @@ app.post("/room", (req, res) => {
           function (err, row) {
             for (let i = 0; i < row.length; i++) {
               if (row[i]["authorization"] == req.session.user_authorization) {
-                req.session.team_number = team_number;
-                req.session.authorization = authorization;
-                return res.redirect("/room/" + String(team_number));
+                var redirecting = false;
+                break;
               } else {
-                req.session.team_error2 = true;
-                return res.redirect("/home");
+                var redirecting = true;
               }
+            }
+            if (redirecting) {
+              req.session.team_error2 = true;
+              console.log("kon");
+              return res.redirect("/home");
+            } else {
+              req.session.team_number = team_number;
+              req.session.authorization = authorization;
+              return res.redirect("/room/" + String(team_number));
             }
           }
         );
+      } else {
+        req.session.team_number = team_number;
+        req.session.authorization = authorization;
+        return res.redirect("/room/" + String(team_number));
       }
-      req.session.team_number = team_number;
-      req.session.authorization = authorization;
-      return res.redirect("/room/" + String(team_number));
     }
   });
 });
@@ -532,15 +558,21 @@ app.get("/room/*", (req, res) => {
           });
         } else {
           db.all(
-            "select * from " + authorization + "_userslist",
+            "select * from " + req.session.authorization + "_userslist",
             function (err, row) {
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["authorization"] == req.session.user_authorization) {
-                  return res.redirect("room.ejs");
+                  var redirecting = false;
+                  break;
                 } else {
-                  req.session.team_error2 = true;
-                  return res.redirect("/home");
+                  var redirecting = true;
                 }
+              }
+              if (redirecting) {
+                req.session.team_error2 = true;
+                return res.redirect("/home");
+              } else {
+                return res.render("room.ejs");
               }
             }
           );
