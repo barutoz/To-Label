@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Hello World</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.7.0.js"
+      integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="/send_url.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body style="background-color: rgb(249, 245, 253)">
+    <header class="pt-3" style="padding-left: 1.1rem">
+      <a href="/"><h2 class="title">No title</h2></a>
+      <nav class="nav">
+        <ul>
+          <a href="/login"><li>login</li></a>
+          <a href="/home"><li>Home</li></a>
+          <a href="/profile"><li>Profile</li></a>
+          <li>Music</li>
+          <li>
+            <form action="/logout" method="POST">
+              <button type="submit">ログアウト</button>
+            </form>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="m-4">
+      <h1 class="mb-4"><span class="bg-warning">Lobby</span></h1>
+      <div class="mb-4 border-bottom" id="text">
+        <h4 class="text-center font-weight-bold">
+          <%= username %>さんは現在以下の部屋に入室しています!
+        </h4>
+        <h4 class="text-center font-weight-bold">
+          全てのメンバーが揃ったら、準備OKボタンを押してください!
+        </h4>
+      </div>
+      <div class="w-75" style="margin: 0 auto">
+        <p>チーム入室用パスワード:<%= password %></p>
+        <table class="table">
+          <thead>
+            <tr class="table-dark">
+              <th scope="col">#</th>
+              <th scope="col">player</th>
+              <th scope="col">OK!</th>
+            </tr>
+          </thead>
+          <tbody id="unko">
+            <tr class="table-primary">
+              <th scope="row">player1(YOU)</th>
+              <td><p style="font-weight: bold"><%= username %></p></td>
+              <td>
+                <button class="btn btn-success" id="prepare">
+                  <p style="font-weight: bold; margin-bottom: 0px">準備OK!</p>
+                </button>
+              </td>
+            </tr>
+            <% user_list.forEach(element => {%>
+            <tr class="table-light" id="<%= element.authorization %>">
+              <th scope="row">player<%= element.id %></th>
+              <td><%= element.user %></td>
+              <% if (element.permission==1){%>
+              <td>
+                <p class="text-success" style="font-weight: bold">準備OK!</p>
+              </td>
+              <%}else{%>
+              <td>
+                <p class="text-danger" style="font-weight: bold">準備中...</p>
+              </td>
+              <%}%>
+            </tr>
+            <%});%>
+          </tbody>
+        </table>
+        <div class="row g-3 align-items-center mt-2">
+          <div class="col-8">
+            <label for="time" class="col-form-label" style="font-weight: bold"
+              >制限時間を入力(min)</label
+            >
+          </div>
+          <div class="col-4">
+            <div class="input-group">
+              <button type="button" class="btn btn-primary" id="btn+">+</button>
+              <input
+                type="number"
+                id="time"
+                class="form-control"
+                value="5"
+                style="text-align: right"
+                disabled
+              />
+              <button type="button" class="btn btn-primary" id="btn-">
+                ー
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      var socket = io();
+      let timer;
+      let timer2;
+      const self_authorization = "<%= self_authorization %>";
+      $(window).on("load", function () {
+        socket.emit("team-join");
+      });
+      $("#prepare").click(function () {
+        if ($(this).attr("class") == "btn btn-success") {
+          socket.emit("prepare", true);
+        } else {
+          socket.emit("prepare", false);
+        }
+      });
+      $("#time")
+        .prev("button")
+        .click(function () {
+          var now = $("#time").val();
+          socket.emit("time", Number(now) + 1);
+        });
+      $("#btn-").click(function () {
+        var now = $("#time").val();
+        socket.emit("time", Number(now) - 1);
+      });
+      socket.on("time_update", function (msg) {
+        $("#time").val(Number(msg));
+      });
+      socket.on("prepre", function (msg) {
+        if (Array.isArray(msg)) {
+          if (msg.length == 3) {
+            clearTimeout(timer);
+            clearTimeout(timer2);
+            $("#text").children("h1").remove();
+            $("#text").children("h4").show();
+            if (msg[0] == self_authorization) {
+              if (msg[1]) {
+                $("#prepare").children("p").text("準備中...");
+                $("#prepare").attr("class", "btn btn-danger");
+              } else {
+                $("#prepare").children("p").text("準備OK!");
+                $("#prepare").attr("class", "btn btn-success");
+              }
+            } else {
+              if ($("#" + msg[0]).length) {
+                if (msg[1]) {
+                  $("#" + msg[0])
+                    .find("p")
+                    .text("準備OK!");
+                  $("#" + msg[0])
+                    .find("p")
+                    .attr("class", "text-success");
+                } else {
+                  $("#" + msg[0])
+                    .find("p")
+                    .text("準備中...");
+                  $("#" + msg[0])
+                    .find("p")
+                    .attr("class", "text-danger");
+                }
+              }
+            }
+            console.log(msg);
+            if (msg[2] == true) {
+              $("#text").children("h4").hide();
+              $("#text").append(
+                "<h1 class='text-danger text-center'>3秒後に始まります。</h1>"
+              );
+              timer = setTimeout(function () {
+                $("#text").children("h1").text("2秒後に始まります。");
+              }, 1000);
+              timer2 = setTimeout(function () {
+                $("#text").children("h1").text("1秒後に始まります。");
+              }, 2000);
+            }
+          }
+        }
+      });
+      socket.on("join-join", function (msg) {
+        if (Array.isArray(msg)) {
+          if (msg.length == 4) {
+            clearTimeout(timer);
+            clearTimeout(timer2);
+            $("#text").children("h1").remove();
+            $("#text").children("h4").show();
+            if (msg[0] !== self_authorization) {
+              var player_number = $("#unko").children("tr").length;
+              var content =
+                "<tr class='table-light' id=" +
+                msg[0] +
+                "><th scope='row'>player" +
+                String(player_number + 1) +
+                "</th><td>" +
+                msg[1] +
+                "</td><td><p class='text-danger' style='font-weight: bold'>準備中...</p></td></tr>";
+              $("#unko").append(content);
+            } else {
+              $("#time").val(msg[2]);
+            }
+          }
+        }
+      });
+      socket.on("leave", function (msg) {
+        if ($("#" + msg).length) {
+          clearTimeout(timer);
+          clearTimeout(timer2);
+          $("#text").children("h1").remove();
+          $("#text").children("h4").show();
+          $("#" + msg).remove();
+        }
+      });
+      socket.on("next-before", function (msg) {
+        if (msg) {
+          socket.emit("next-after");
+        }
+      });
+      socket.on("next", function (msg) {
+        if (msg) {
+          window.location.reload();
+        }
+      });
+    </script>
+  </body>
+</html>
