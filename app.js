@@ -130,7 +130,6 @@ function generateCSRFToken() {
 }
 
 let time = [];
-let timer;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -148,8 +147,9 @@ io.on("connection", (socket) => {
         if (time[i][0] == authorization) {
           var time_new = time[i][1];
           if (time[i][2]) {
+            console.log("kinami");
             time[i][2] = false;
-            clearTimeout(timer);
+            clearTimeout(time[i][3]);
           }
           break;
         } else {
@@ -185,6 +185,16 @@ io.on("connection", (socket) => {
     if (socket.request.session.authorization) {
       var authorization = socket.request.session.authorization;
       var user_authorization = socket.request.session.user_authorization;
+      for (let i = 0; i < time.length; i++) {
+        if (time[i][0] == authorization) {
+          if (time[i][2]) {
+            console.log("kinami");
+            time[i][2] = false;
+            clearTimeout(time[i][3]);
+            break;
+          }
+        }
+      }
       if (msg == true) {
         db.serialize(() => {
           db.run(
@@ -214,7 +224,7 @@ io.on("connection", (socket) => {
                 for (let i = 0; i < time.length; i++) {
                   if (time[i][0] == authorization) {
                     time[i][2] = true;
-                    timer = setTimeout(function () {
+                    time[i][3] = setTimeout(function () {
                       db.serialize(() => {
                         db.run(
                           "UPDATE room_number SET permission=1, time=" +
@@ -280,7 +290,9 @@ io.on("connection", (socket) => {
         if (time[i][0] == authorization) {
           if (time[i][2]) {
             time[i][2] = false;
-            clearTimeout(timer);
+
+            clearTimeout(time[i][3]);
+
             break;
           }
         }
@@ -519,7 +531,8 @@ app.get("/room/*", (req, res) => {
             db.all(
               "select * from " + req.session.authorization + "_userslist",
               function (err, row) {
-                console.log(row);
+                console.log(err);
+                console.log(row); ///トラブル頻発エリア(rowが定義されていないエラー)
                 for (let i = 0; i < row.length; i++) {
                   if (row[i]["user"] == req.session.username) {
                     var self_exists = true;
