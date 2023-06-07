@@ -24,6 +24,8 @@ const sessionMiddleware = session({
 app.use(sessionMiddleware);
 io.engine.use(sessionMiddleware);
 
+const number_list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
 // メッセージの配列を初期化
 let messages = [];
 
@@ -32,6 +34,16 @@ function number_check(number) {
     return false;
   } else {
     db.all("select number from room_number", function (err, row) {
+      (err) => {
+        if (err) {
+          console.error(err.message);
+          req.session.destroy;
+          return res.json({
+            success: false,
+            message: "処理に失敗しました。もう一度やり直してください。",
+          });
+        }
+      };
       for (var ini = 0; ini < row.length; ini++) {
         if (row[ini]["number"] == number) {
           var exists = true;
@@ -75,49 +87,83 @@ const createPassword = () => {
 };
 
 function check_authorization(authorization) {
-  db.all("select * from room_number", function (err, row) {
-    for (let i = 0; i < row.length; i++) {
-      if (row[i]["authorization"] == authorization) {
-        return true;
+  if (number_list.includes(authorization.substring(0, 1))) {
+    return true;
+  } else {
+    db.all("select * from room_number", function (err, row) {
+      (err) => {
+        if (err) {
+          console.error(err.message);
+          req.session.destroy;
+          return res.json({
+            success: false,
+            message: "処理に失敗しました。もう一度やり直してください。",
+          });
+        }
+      };
+      for (let i = 0; i < row.length; i++) {
+        if (row[i]["authorization"] == authorization) {
+          var exists = true;
+          break;
+        } else {
+          var exists = false;
+        }
       }
-    }
-    return false;
-  });
+      if (exists) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+  }
 }
 
 function check_user(authorization) {
-  db.all("select * from users", function (err, row) {
-    for (let i = 0; i < row.length; i++) {
-      if (row[i]["authorization"] == authorization) {
-        return true;
+  if (number_list.includes(authorization.substring(0, 1))) {
+    return true;
+  } else {
+    db.all("select * from users", function (err, row) {
+      (err) => {
+        if (err) {
+          console.error(err.message);
+          req.session.destroy;
+          return res.json({
+            success: false,
+            message: "処理に失敗しました。もう一度やり直してください。",
+          });
+        }
+      };
+      for (let i = 0; i < row.length; i++) {
+        if (row[i]["authorization"] == authorization) {
+          var exists = true;
+          break;
+        } else {
+          var exists = false;
+        }
       }
-    }
-    return false;
-  });
+      if (exists) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+  }
 }
 
 function create_authorization() {
   var authorization = createPassword();
-  if (!check_authorization(authorization)) {
-    return authorization;
-  } else {
-    while (check_authorization(authorization) == false) {
-      var authorization = createPassword();
-    }
-    return authorization;
+  while (check_authorization(authorization) == true) {
+    authorization = createPassword();
   }
+  return authorization;
 }
 
 function create_user() {
   var authorization = createPassword();
-  if (!check_user(authorization)) {
-    return authorization;
-  } else {
-    while (check_user(authorization) == false) {
-      var authorization = createPassword();
-    }
-    return authorization;
+  while (check_user(authorization) == true) {
+    var authorization = createPassword();
   }
+  return authorization;
 }
 
 // CSRF トークンの生成関数
@@ -130,7 +176,6 @@ function generateCSRFToken() {
 }
 
 let time = [];
-let timer;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
@@ -143,13 +188,12 @@ io.on("connection", (socket) => {
     var authorization = socket.request.session.authorization;
     if (authorization) {
       socket.request.session.entry = true;
-      console.log(time);
       for (let i = 0; i < time.length; i++) {
         if (time[i][0] == authorization) {
           var time_new = time[i][1];
           if (time[i][2]) {
             time[i][2] = false;
-            clearTimeout(timer);
+            clearTimeout(time[i][3]);
           }
           break;
         } else {
@@ -185,6 +229,15 @@ io.on("connection", (socket) => {
     if (socket.request.session.authorization) {
       var authorization = socket.request.session.authorization;
       var user_authorization = socket.request.session.user_authorization;
+      for (let i = 0; i < time.length; i++) {
+        if (time[i][0] == authorization) {
+          if (time[i][2]) {
+            time[i][2] = false;
+            clearTimeout(time[i][3]);
+            break;
+          }
+        }
+      }
       if (msg == true) {
         db.serialize(() => {
           db.run(
@@ -196,7 +249,17 @@ io.on("connection", (socket) => {
           );
           db.all(
             "SELECT permission FROM " + authorization + "_userslist",
-            function (error, row) {
+            function (err, row) {
+              (err) => {
+                if (err) {
+                  console.error(err.message);
+                  req.session.destroy;
+                  return res.json({
+                    success: false,
+                    message: "処理に失敗しました。もう一度やり直してください。",
+                  });
+                }
+              };
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["permission"] == 0) {
                   var complete = false;
@@ -205,7 +268,7 @@ io.on("connection", (socket) => {
                   var complete = true;
                 }
               }
-              console.log(complete);
+
               if (row.length < 2) {
                 var complete = false;
               }
@@ -214,7 +277,7 @@ io.on("connection", (socket) => {
                 for (let i = 0; i < time.length; i++) {
                   if (time[i][0] == authorization) {
                     time[i][2] = true;
-                    timer = setTimeout(function () {
+                    time[i][3] = setTimeout(function () {
                       db.serialize(() => {
                         db.run(
                           "UPDATE room_number SET permission=1, time=" +
@@ -280,7 +343,9 @@ io.on("connection", (socket) => {
         if (time[i][0] == authorization) {
           if (time[i][2]) {
             time[i][2] = false;
-            clearTimeout(timer);
+
+            clearTimeout(time[i][3]);
+
             break;
           }
         }
@@ -316,7 +381,17 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
   // ユーザーの検索
-  db.all("SELECT * FROM users", function (error, row) {
+  db.all("SELECT * FROM users", function (err, row) {
+    (err) => {
+      if (err) {
+        console.error(err.message);
+        req.session.destroy;
+        return res.json({
+          success: false,
+          message: "処理に失敗しました。もう一度やり直してください。",
+        });
+      }
+    };
     for (let i = 0; i < row.length; i++) {
       if (req.body.username == row[i]["username"]) {
         if (req.body.password == row[i]["password"]) {
@@ -420,7 +495,7 @@ app.get("/home", (req, res) => {
       msg = "不正な番号です。";
     } else if (req.session.team_error2) {
       req.session.team_error2 = false;
-      console.log("kon");
+
       msg = "このセッションは締め切られてます。";
     } else {
       msg = "";
@@ -436,6 +511,10 @@ app.post("/room", (req, res) => {
   if (req.session.user_authorization == false) {
     req.session.destroy;
     return res.redirect("/login");
+  }
+  if (req.body.room.length !== 4) {
+    req.session.team_error = true;
+    return res.redirect("/home");
   }
   db.all("select * from room_number", function (err, row) {
     for (let i = 0; i < row.length; i++) {
@@ -456,6 +535,16 @@ app.post("/room", (req, res) => {
         db.all(
           "select * from " + authorization + "_userslist",
           function (err, row) {
+            (err) => {
+              if (err) {
+                console.error(err.message);
+                req.session.destroy;
+                return res.json({
+                  success: false,
+                  message: "処理に失敗しました。もう一度やり直してください。",
+                });
+              }
+            };
             for (let i = 0; i < row.length; i++) {
               if (row[i]["authorization"] == req.session.user_authorization) {
                 var redirecting = false;
@@ -466,7 +555,7 @@ app.post("/room", (req, res) => {
             }
             if (redirecting) {
               req.session.team_error2 = true;
-              console.log("kon");
+
               return res.redirect("/home");
             } else {
               req.session.team_number = team_number;
@@ -498,6 +587,16 @@ app.get("/room/*", (req, res) => {
       return res.redirect("/home");
     }
     db.all("select * from room_number", function (err, row) {
+      (err) => {
+        if (err) {
+          console.error(err.message);
+          req.session.destroy;
+          return res.json({
+            success: false,
+            message: "処理に失敗しました。もう一度やり直してください。",
+          });
+        }
+      };
       for (let i = 0; i < row.length; i++) {
         if (row[i]["id"] == req.session.team_number) {
           if (row[i]["authorization"] == req.session.authorization) {
@@ -519,7 +618,18 @@ app.get("/room/*", (req, res) => {
             db.all(
               "select * from " + req.session.authorization + "_userslist",
               function (err, row) {
-                console.log(row);
+                (err) => {
+                  if (err) {
+                    console.error(err.message);
+                    req.session.destroy;
+                    return res.json({
+                      success: false,
+                      message:
+                        "処理に失敗しました。もう一度やり直してください。",
+                    });
+                  }
+                };
+                ///トラブル頻発エリア(rowが定義されていないエラー)
                 for (let i = 0; i < row.length; i++) {
                   if (row[i]["user"] == req.session.username) {
                     var self_exists = true;
@@ -547,6 +657,17 @@ app.get("/room/*", (req, res) => {
                 }
                 username = req.session.username;
                 self_authorization = req.session.user_authorization;
+                if (password < 1000) {
+                  if (password < 100) {
+                    if (password < 10) {
+                      password = "000" + String(password);
+                    } else {
+                      password = "00" + String(password);
+                    }
+                  } else {
+                    password = "0" + String(password);
+                  }
+                }
                 return res.render("entry.ejs", {
                   username: username,
                   password: password,
@@ -560,6 +681,16 @@ app.get("/room/*", (req, res) => {
           db.all(
             "select * from " + req.session.authorization + "_userslist",
             function (err, row) {
+              (err) => {
+                if (err) {
+                  console.error(err.message);
+                  req.session.destroy;
+                  return res.json({
+                    success: false,
+                    message: "処理に失敗しました。もう一度やり直してください。",
+                  });
+                }
+              };
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["authorization"] == req.session.user_authorization) {
                   var redirecting = false;
@@ -595,6 +726,16 @@ app.post("/random", (req, res) => {
     var number = number_generate(number);
     var authorization = create_authorization();
     db.all("select number from room_number", function (err, row) {
+      (err) => {
+        if (err) {
+          console.error(err.message);
+          req.session.destroy;
+          return res.json({
+            success: false,
+            message: "処理に失敗しました。もう一度やり直してください。",
+          });
+        }
+      };
       var rowrow = row.length + 1;
       db.serialize(() => {
         db.run(
@@ -672,7 +813,17 @@ app.post("/profile", (req, res) => {
   const newUsername = req.body.username;
   const newPassword = req.body.password;
   if (req.session.userId && req.session.username) {
-    db.all("SELECT * FROM users", function (error, row) {
+    db.all("SELECT * FROM users", function (err, row) {
+      (err) => {
+        if (err) {
+          console.error(err.message);
+          req.session.destroy;
+          return res.json({
+            success: false,
+            message: "処理に失敗しました。もう一度やり直してください。",
+          });
+        }
+      };
       for (let i = 0; i < row.length; i++) {
         if (row[i]["id"] == req.session.userId) {
           if (row[i]["password"] == oldUserpass) {
