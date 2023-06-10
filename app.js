@@ -352,6 +352,13 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("msg_submit", (msg) => {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      console.log(msg);
+    }
+  });
+
   socket.on("disconnect", () => {
     var authorization = socket.request.session.authorization;
     var user_authorization = socket.request.session.user_authorization;

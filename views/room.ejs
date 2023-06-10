@@ -65,18 +65,18 @@
               <div class="card-body">
                 <textarea
                   class="form-control"
-                  id="exampleFormControlTextarea1"
+                  id="message"
                   rows="3"
                   style="resize: none"
                 ></textarea>
                 <div class="row mt-2">
                   <div class="col 5">
                     <select
-                      id="exampleFormControlTextarea1"
+                      id="address"
                       class="form-select"
                       aria-label="Default select example"
                     >
-                      <option selected>宛先</option>
+                      <option selected value="origin" id="origin">宛先</option>
                       <% other_users.forEach(element =>{%>
                       <option value="<%= element.authorization %>">
                         <%= element.user %>
@@ -85,7 +85,11 @@
                     </select>
                   </div>
                   <div class="col 4">
-                    <button class="btn btn-primary" style="text-align: right">
+                    <button
+                      class="btn btn-primary"
+                      style="text-align: right"
+                      id="msg_submit"
+                    >
                       submit
                     </button>
                   </div>
@@ -148,8 +152,24 @@
     </main>
     <script>
       const socket = io();
+      let content;
+
       $(window).on("load", function () {
         socket.emit("room-join");
+      });
+
+      $("#msg_submit").click(function () {
+        if ($("#address").val() == "origin") {
+          $("#origin").text("宛名を入れてね!!");
+        } else {
+          if ($("#message").val() == "") {
+            $("message").attr("placeholder", "なんか入力してね");
+          } else {
+            content = [$("#address").val(), $("#message").val()];
+            socket.emit("msg_submit", content);
+            $("#message").val("");
+          }
+        }
       });
     </script>
   </body>
