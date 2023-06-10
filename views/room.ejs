@@ -77,9 +77,11 @@
                       aria-label="Default select example"
                     >
                       <option selected>宛先</option>
-                      <option value="1">One</option>
-                      <option value="2">Two</option>
-                      <option value="3">Three</option>
+                      <% other_users.forEach(element =>{%>
+                      <option value="<%= element.authorization %>">
+                        <%= element.user %>
+                      </option>
+                      <% }) %>
                     </select>
                   </div>
                   <div class="col 4">

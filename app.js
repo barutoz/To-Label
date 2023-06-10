@@ -678,6 +678,10 @@ app.get("/room/*", (req, res) => {
             );
           });
         } else {
+          let other_users = [];
+          let other_users_authorization;
+          let other_users_user;
+          let redirecting = true;
           db.all(
             "select * from " + req.session.authorization + "_userslist",
             function (err, row) {
@@ -693,17 +697,21 @@ app.get("/room/*", (req, res) => {
               };
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["authorization"] == req.session.user_authorization) {
-                  var redirecting = false;
-                  break;
+                  redirecting = false;
                 } else {
-                  var redirecting = true;
+                  other_users_user = row[i]["user"];
+                  other_users_authorization = row[i]["authorization"];
+                  other_users[i] = {
+                    user: other_users_user,
+                    authorization: other_users_authorization,
+                  };
                 }
               }
               if (redirecting) {
                 req.session.team_error2 = true;
                 return res.redirect("/home");
               } else {
-                return res.render("room.ejs");
+                return res.render("room.ejs", { other_users: other_users });
               }
             }
           );
