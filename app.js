@@ -682,19 +682,20 @@ app.get("/room/*", (req, res) => {
           let other_users_authorization;
           let other_users_user;
           let redirecting = true;
+          let msg_list = [];
+          let your_msg_list = [];
+          let other_msg_list = [];
           db.all(
             "select * from " + req.session.authorization + "_userslist",
             function (err, row) {
-              (err) => {
-                if (err) {
-                  console.error(err.message);
-                  req.session.destroy;
-                  return res.json({
-                    success: false,
-                    message: "処理に失敗しました。もう一度やり直してください。",
-                  });
-                }
-              };
+              if (err) {
+                console.error(err.message);
+                req.session.destroy;
+                return res.json({
+                  success: false,
+                  message: "処理に失敗しました。もう一度やり直してください。",
+                });
+              }
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["authorization"] == req.session.user_authorization) {
                   redirecting = false;
@@ -711,7 +712,41 @@ app.get("/room/*", (req, res) => {
                 req.session.team_error2 = true;
                 return res.redirect("/home");
               } else {
-                return res.render("room.ejs", { other_users: other_users });
+                db.all(
+                  "select * from " + req.session.authorization,
+                  function (err, row) {
+                    if (err) {
+                      console.error(err.message);
+                      req.session.destroy;
+                      return res.json({
+                        success: false,
+                        message:
+                          "処理に失敗しました。もう一度やり直してください。",
+                      });
+                    }
+                    console.log(row.length);
+                    msg_list = row;
+                    console.log(msg_list.length);
+                    for (let i = 0; i < msg_list.length; i++) {
+                      if (
+                        msg_list[i]["from"] == req.session.user_authorization
+                      ) {
+                        your_msg_list.push(msg_list[i]);
+                      } else if (
+                        msg_list[i]["from"] !==
+                          req.session.user_authorization &&
+                        msg_list[i]["to"] !== req.session.user_authorization
+                      ) {
+                        other_msg_list.push(msg_list[i]);
+                      }
+                    }
+                    return res.render("room.ejs", {
+                      other_users: other_users,
+                      your_msg_list: your_msg_list,
+                      other_msg_list: other_msg_list,
+                    });
+                  }
+                );
               }
             }
           );
@@ -758,7 +793,7 @@ app.post("/random", (req, res) => {
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '" ( "id"	INTEGER NOT NULL UNIQUE, "from"	TEXT NOT NULL, "to"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, PRIMARY KEY("id" AUTOINCREMENT) );'
+            '" ( "id"	INTEGER NOT NULL UNIQUE, "from"	TEXT NOT NULL, "to"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, PRIMARY KEY("id" AUTOINCREMENT) );'
         );
         db.run(
           'CREATE TABLE "' +
