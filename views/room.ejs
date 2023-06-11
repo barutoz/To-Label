@@ -367,6 +367,10 @@
           }
         }
       });
+
+      socket.on("finish", function () {
+        window.location.reload();
+      });
     </script>
   </body>
 </html>

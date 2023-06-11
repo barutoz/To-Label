@@ -378,16 +378,42 @@ io.on("connection", (socket) => {
       if (socket.request.session.status == 0) {
         socket.request.session.entry = false;
         socket.emit("next", true);
+        let exist;
+        let ix;
         for (let i = 0; i < time.length; i++) {
           if (time[i][0] == authorization) {
-            if (typeof time[i][4] == "undefined") {
-              clearTimeout(time[i][3]);
-              let limit = time[i][1] * 60;
-              time[i][4] = setInterval(function () {
-                limit = limit - 10;
-                if (limit == 0) {
-                  clearInterval(time[i][4]);
-                }
+            exist = true;
+            ix = i;
+            break;
+          } else {
+            exist = false;
+          }
+        }
+        console.log(ix);
+        if (exist) {
+          console.log("er");
+          if (typeof time[ix][4] == "undefined") {
+            console.log("kinami");
+            clearTimeout(time[ix][3]);
+            let limit = time[ix][1] * 60;
+            time[ix][4] = setInterval(function () {
+              limit = limit - 10;
+              if (limit == 0) {
+                db.serialize(() => {
+                  db.run(
+                    "UPDATE room_number SET permission=2, time=0 WHERE authorization='" +
+                      authorization +
+                      "'",
+                    (err) => {
+                      if (err) {
+                        console.log(err.message);
+                      }
+                    }
+                  );
+                });
+                io.to(authorization).emit("finish");
+                clearInterval(time[ix][4]);
+              } else {
                 db.serialize(() => {
                   db.run(
                     "UPDATE room_number SET permission=1, time=" +
@@ -402,8 +428,8 @@ io.on("connection", (socket) => {
                     }
                   );
                 });
-              }, 10000);
-            }
+              }
+            }, 10000);
           }
         }
       }
@@ -960,29 +986,33 @@ app.get("/room/*", (req, res) => {
                     }
 
                     msg_list = row;
-
-                    for (let i = 0; i < msg_list.length; i++) {
-                      if (
-                        msg_list[i]["player1"] == req.session.user_authorization
-                      ) {
-                        your_msg_list.push(msg_list[i]);
-                      } else if (
-                        msg_list[i]["player1"] !==
-                          req.session.user_authorization &&
-                        msg_list[i]["player2"] !==
+                    if (permission == 1) {
+                      for (let i = 0; i < msg_list.length; i++) {
+                        if (
+                          msg_list[i]["player1"] ==
                           req.session.user_authorization
-                      ) {
-                        other_msg_list.push(msg_list[i]);
+                        ) {
+                          your_msg_list.push(msg_list[i]);
+                        } else if (
+                          msg_list[i]["player1"] !==
+                            req.session.user_authorization &&
+                          msg_list[i]["player2"] !==
+                            req.session.user_authorization
+                        ) {
+                          other_msg_list.push(msg_list[i]);
+                        }
                       }
+                      return res.render("room.ejs", {
+                        other_users: other_users,
+                        your_msg_list: your_msg_list,
+                        other_msg_list: other_msg_list,
+                        self_authorization: req.session.user_authorization,
+                        time: time,
+                        original_time: original_time,
+                      });
+                    } else if ((permission = 2)) {
+                      return res.render("result.ejs");
                     }
-                    return res.render("room.ejs", {
-                      other_users: other_users,
-                      your_msg_list: your_msg_list,
-                      other_msg_list: other_msg_list,
-                      self_authorization: req.session.user_authorization,
-                      time: time,
-                      original_time: original_time,
-                    });
                   }
                 );
               }
