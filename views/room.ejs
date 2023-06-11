@@ -116,6 +116,13 @@
                         />
                       </div>
                       <div class="col-5 pb-0">
+                        <button
+                          type="button"
+                          class="btn btn-primary btn-sm"
+                          name="complete"
+                        >
+                          終了
+                        </button>
                         <div
                           class="btn-group"
                           role="group"
@@ -175,6 +182,11 @@
           .each(function () {
             $(this).attr("type", "hidden");
           });
+        $("#your_msg_list")
+          .find("button[name='complete']")
+          .each(function () {
+            $(this).hide();
+          });
         socket.emit("room-join");
       });
 
@@ -222,36 +234,21 @@
         }
       });
 
-      $("#your_msg_list")
-        .find("button[name='edit']")
-        .click(function () {
-          if ($(this).attr("name") == "edit") {
-            $(this).parent().parent().parent().find("p[name='msg']").hide();
-            $(this)
-              .parent()
-              .parent()
-              .parent()
-              .find("input")
-              .attr("type", "text");
-            $(this).next().hide();
-            $(this).text("終了");
-            $(this).attr("name", "delete");
-          }
-          if ($(this).attr("name") == "delete") {
-            var msg = $(this).parent().parent().parent().find("input").val();
-            $(this).parent().parent().parent().find("p[name='msg']").text(msg);
-            $(this).parent().parent().parent().find("p[name='msg']").show();
-            $(this)
-              .parent()
-              .parent()
-              .parent()
-              .find("input")
-              .attr("type", "hidden");
-            $(this).next().show();
-            $(this).text("編集");
-            $(this).attr("name", "edit");
-          }
-        });
+      $("button[name='edit']").click(function () {
+        $(this).parent().parent().parent().find("p[name='msg']").hide();
+        $(this).parent().parent().parent().find("input").attr("type", "text");
+        $(this).parent().hide();
+        $(this).parent().parent().find("button[name='complete']").show();
+      });
+
+      $("button[name='complete']").click(function () {
+        var msg = $(this).parent().parent().parent().find("input").val();
+        $(this).parent().parent().find("p[name='msg']").text(msg);
+        $(this).parent().parent().find("p[name='msg']").show();
+        $(this).parent().parent().find("input").attr("type", "hidden");
+        $(this).parent().find("div").show();
+        $(this).hide();
+      });
     </script>
   </body>
 </html>
