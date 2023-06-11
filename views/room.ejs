@@ -68,6 +68,7 @@
                   id="message"
                   rows="3"
                   style="resize: none"
+                  placeholder=""
                 ></textarea>
                 <div class="row mt-2">
                   <div class="col 5">
@@ -100,7 +101,7 @@
           <div class="row">
             <div class="card">
               <div class="card-body">
-                <ul class="list-group">
+                <ul class="list-group" id="your_msg_list">
                   <% your_msg_list.forEach(element=>{ %>
                   <li class="list-group-item">
                     <div class="row">
@@ -134,7 +135,7 @@
         </div>
         <div class="col">
           <div class="card">
-            <div class="card-body">
+            <div class="card-body" id="other_msg_list">
               <% other_msg_list.forEach(element=>{%>
               <div class="card">
                 <div class="card-header">
@@ -153,6 +154,7 @@
     <script>
       const socket = io();
       let content;
+      const self_authorization = "<%= self_authorization %>";
 
       $(window).on("load", function () {
         socket.emit("room-join");
@@ -168,6 +170,34 @@
             content = [$("#address").val(), $("#message").val()];
             socket.emit("msg_submit", content);
             $("#message").val("");
+          }
+        }
+      });
+
+      socket.on("receive_msg", function (msg) {
+        console.log(msg);
+        if (msg.length == 5) {
+          if (msg[0] == self_authorization) {
+            $("#your_msg_list").append(
+              '<li class="list-group-item"><div class="row"><div class="col-7 pb-0"><p>@' +
+                msg[4] +
+                " " +
+                msg[2] +
+                '</p></div><div class="col-5 pb-0"><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-primary btn-sm">編集</button><buttontype="button" class="btn btn-secondary btn-sm">削除</button></div></div></div></li>'
+            );
+          } else if (
+            msg[0] !== self_authorization &&
+            msg[1] !== self_authorization
+          ) {
+            $("#other_msg_list").append(
+              '<div class="card"><div class="card-header">FROM:' +
+                msg[3] +
+                " TO:" +
+                msg[4] +
+                '</div><div class="card-body"><p class="card-text text-center">' +
+                msg[2] +
+                "</p></div></div>"
+            );
           }
         }
       });

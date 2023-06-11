@@ -347,15 +347,70 @@ io.on("connection", (socket) => {
   socket.on("room-join", () => {
     var authorization = socket.request.session.authorization;
     if (authorization) {
-      socket.request.session.status == 1;
+      socket.request.session.status = 1;
+      console.log("hello");
       socket.join(authorization);
     }
   });
 
   socket.on("msg_submit", (msg) => {
+    console.log(msg);
     var authorization = socket.request.session.authorization;
     if (authorization) {
-      console.log(msg);
+      console.log("ki");
+      console.log(socket.request.session.status);
+      if (socket.request.session.status == 1) {
+        console.log("hi");
+        if (msg.length == 2) {
+          console.log(msg);
+          db.all(
+            "select * from " + authorization + "_userslist",
+            function (err, row) {
+              if (err) {
+                console.log(err.message);
+                return res.json({
+                  success: false,
+                  message: "処理に失敗しました。もう一度やり直してください。",
+                });
+              } else {
+                let to_username;
+                for (let i = 0; i < row.length; i++) {
+                  if (row[i]["authorization"] == msg[0]) {
+                    to_username = row[i]["user"];
+                    break;
+                  }
+                }
+                db.serialize(() => {
+                  db.run(
+                    "INSERT INTO " +
+                      authorization +
+                      "(player1, player2, msg, from_username, to_username) VALUES(?, ?, ?, ?, ?)",
+                    [
+                      socket.request.session.user_authorization,
+                      msg[0],
+                      msg[1],
+                      socket.request.session.username,
+                      to_username,
+                    ],
+                    (err) => {
+                      if (err) {
+                        console.error(err.message);
+                      }
+                    }
+                  );
+                });
+                io.to(authorization).emit("receive_msg", [
+                  socket.request.session.user_authorization,
+                  msg[0],
+                  msg[1],
+                  socket.request.session.username,
+                  to_username,
+                ]);
+              }
+            }
+          );
+        }
+      }
     }
   });
 
@@ -753,13 +808,14 @@ app.get("/room/*", (req, res) => {
                     console.log(msg_list.length);
                     for (let i = 0; i < msg_list.length; i++) {
                       if (
-                        msg_list[i]["from"] == req.session.user_authorization
+                        msg_list[i]["player1"] == req.session.user_authorization
                       ) {
                         your_msg_list.push(msg_list[i]);
                       } else if (
-                        msg_list[i]["from"] !==
+                        msg_list[i]["player1"] !==
                           req.session.user_authorization &&
-                        msg_list[i]["to"] !== req.session.user_authorization
+                        msg_list[i]["player2"] !==
+                          req.session.user_authorization
                       ) {
                         other_msg_list.push(msg_list[i]);
                       }
@@ -768,6 +824,7 @@ app.get("/room/*", (req, res) => {
                       other_users: other_users,
                       your_msg_list: your_msg_list,
                       other_msg_list: other_msg_list,
+                      self_authorization: req.session.user_authorization,
                     });
                   }
                 );
@@ -815,7 +872,7 @@ app.post("/random", (req, res) => {
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '" ( "id"	INTEGER NOT NULL UNIQUE, "from"	TEXT NOT NULL, "to"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, PRIMARY KEY("id" AUTOINCREMENT) );'
+            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, PRIMARY KEY("id" AUTOINCREMENT) );'
         );
         db.run(
           'CREATE TABLE "' +
