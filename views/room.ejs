@@ -184,6 +184,8 @@
       let time = "<%= time %>";
       let original_time = "<%= original_time %>";
       let progress;
+      let timer1;
+      let timer2;
 
       $(window).on("load", function () {
         $("#your_msg_list")
@@ -207,13 +209,13 @@
         $("#progress").attr("style", "width: " + String(progress) + "%");
         $("#progress").text(String(progress) + "%");
         socket.emit("room-join");
-        setInterval(function () {
+        timer1 = setInterval(function () {
           time = time - 1;
           var min = String(Math.floor(Number(time) / 60));
           var sec = String(time - min * 60);
           $("#timer").text("残り " + min + ":" + sec);
         }, 1000);
-        setInterval(function () {
+        timer2 = setInterval(function () {
           progress = Math.floor(
             100 - (Number(time) * 100) / Number(original_time)
           );
