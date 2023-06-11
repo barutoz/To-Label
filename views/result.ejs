@@ -43,6 +43,19 @@
         </ul>
       </nav>
     </header>
-    <main class="m-4"></main>
+    <main class="m-4">
+      <h1 class="text-center">レッテルの結果!!!</h1>
+      <div class="card">
+        <div class="card-header"><%= username %></div>
+        <div class="card-body">
+          <% your_msg_list.forEach(element =>{%>
+          <div class="card">
+            <div class="card-header"><%= element.from_username %></div>
+            <div class="card-body"><%= element.msg %></div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </main>
   </body>
 </html>

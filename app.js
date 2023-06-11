@@ -1011,7 +1011,18 @@ app.get("/room/*", (req, res) => {
                         original_time: original_time,
                       });
                     } else if ((permission = 2)) {
-                      return res.render("result.ejs");
+                      for (let i = 0; i < msg_list.length; i++) {
+                        if (
+                          msg_list[i]["player2"] ==
+                          req.session.user_authorization
+                        ) {
+                          your_msg_list.push(msg_list[i]);
+                        }
+                      }
+                      return res.render("result.ejs", {
+                        your_msg_list: your_msg_list,
+                        username: req.session.username,
+                      });
                     }
                   }
                 );
