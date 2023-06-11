@@ -45,7 +45,7 @@
     </header>
     <main class="m-4">
       <h1 class="text-center">レッテルを貼りましょう!</h1>
-      <p class="text-right" style="text-align: right">残り 01:00</p>
+      <p class="text-right" style="text-align: right" id="timer"></p>
       <div class="progress mb-4">
         <div
           class="progress-bar"
@@ -54,9 +54,8 @@
           aria-valuenow="25"
           aria-valuemin="0"
           aria-valuemax="100"
-        >
-          25%
-        </div>
+          id="progress"
+        ></div>
       </div>
       <div class="row">
         <div class="col">
@@ -182,6 +181,9 @@
       const socket = io();
       let content;
       const self_authorization = "<%= self_authorization %>";
+      let time = "<%= time %>";
+      let original_time = "<%= original_time %>";
+      let progress;
 
       $(window).on("load", function () {
         $("#your_msg_list")
@@ -194,7 +196,30 @@
           .each(function () {
             $(this).hide();
           });
+        if (Number(time) / 60 > 1) {
+          var min = String(Math.floor(Number(time) / 60));
+          var sec = String(time - min * 60);
+          $("#timer").text("残り " + min + ":" + sec);
+        }
+        progress = Math.floor(
+          100 - (Number(time) * 100) / Number(original_time)
+        );
+        $("#progress").attr("style", "width: " + String(progress) + "%");
+        $("#progress").text(String(progress) + "%");
         socket.emit("room-join");
+        setInterval(function () {
+          time = time - 1;
+          var min = String(Math.floor(Number(time) / 60));
+          var sec = String(time - min * 60);
+          $("#timer").text("残り " + min + ":" + sec);
+        }, 1000);
+        setInterval(function () {
+          progress = Math.floor(
+            100 - (Number(time) * 100) / Number(original_time)
+          );
+          $("#progress").attr("style", "width: " + String(progress) + "%");
+          $("#progress").text(String(progress) + "%");
+        }, original_time / 100);
       });
 
       $("#msg_submit").click(function () {

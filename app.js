@@ -317,7 +317,9 @@ io.on("connection", (socket) => {
                         db.serialize(() => {
                           db.run(
                             "UPDATE room_number SET permission=1, time=" +
-                              time[i][1] +
+                              time[i][1] * 60 +
+                              ", original_time=" +
+                              time[i][1] * 60 +
                               " WHERE authorization='" +
                               authorization +
                               "'"
@@ -371,9 +373,40 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next-after", () => {
-    if (socket.request.session.status == 0) {
-      socket.request.session.entry = false;
-      socket.emit("next", true);
+    if (socket.request.session.authorization) {
+      var authorization = socket.request.session.authorization;
+      if (socket.request.session.status == 0) {
+        socket.request.session.entry = false;
+        socket.emit("next", true);
+        for (let i = 0; i < time.length; i++) {
+          if (time[i][0] == authorization) {
+            if (typeof time[i][4] == "undefined") {
+              clearTimeout(time[i][3]);
+              let limit = time[i][1] * 60;
+              time[i][4] = setInterval(function () {
+                limit = limit - 10;
+                if (limit == 0) {
+                  clearInterval(time[i][4]);
+                }
+                db.serialize(() => {
+                  db.run(
+                    "UPDATE room_number SET permission=1, time=" +
+                      limit +
+                      " WHERE authorization='" +
+                      authorization +
+                      "'",
+                    (err) => {
+                      if (err) {
+                        console.log(err.message);
+                      }
+                    }
+                  );
+                });
+              }, 10000);
+            }
+          }
+        }
+      }
     }
   });
 
@@ -801,6 +834,8 @@ app.get("/room/*", (req, res) => {
           if (row[i]["authorization"] == req.session.authorization) {
             var password = row[i]["number"];
             var permission = row[i]["permission"];
+            var time = row[i]["time"];
+            var original_time = row[i]["original_time"];
             var exists = true;
             break;
           } else {
@@ -945,6 +980,8 @@ app.get("/room/*", (req, res) => {
                       your_msg_list: your_msg_list,
                       other_msg_list: other_msg_list,
                       self_authorization: req.session.user_authorization,
+                      time: time,
+                      original_time: original_time,
                     });
                   }
                 );
