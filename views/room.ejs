@@ -106,7 +106,14 @@
                   <li class="list-group-item">
                     <div class="row">
                       <div class="col-7 pb-0">
-                        <p>@<%= element.to_username %> <%= element.msg %></p>
+                        <p>@<%= element.to_username %></p>
+                        <p name="msg"><%= element.msg %></p>
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="入力してね"
+                          value="<%= element.msg %>"
+                        />
                       </div>
                       <div class="col-5 pb-0">
                         <div
@@ -114,12 +121,17 @@
                           role="group"
                           aria-label="Basic mixed styles example"
                         >
-                          <button type="button" class="btn btn-primary btn-sm">
+                          <button
+                            type="button"
+                            class="btn btn-primary btn-sm"
+                            name="edit"
+                          >
                             編集
                           </button>
                           <button
                             type="button"
                             class="btn btn-secondary btn-sm"
+                            name="delete"
                           >
                             削除
                           </button>
@@ -157,6 +169,12 @@
       const self_authorization = "<%= self_authorization %>";
 
       $(window).on("load", function () {
+        console.log($("#your_msg_list").find("input"));
+        $("#your_msg_list")
+          .find("input")
+          .each(function () {
+            $(this).attr("type", "hidden");
+          });
         socket.emit("room-join");
       });
 
@@ -181,9 +199,11 @@
             $("#your_msg_list").append(
               '<li class="list-group-item"><div class="row"><div class="col-7 pb-0"><p>@' +
                 msg[4] +
-                " " +
+                '</p><p name="msg">' +
                 msg[2] +
-                '</p></div><div class="col-5 pb-0"><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-primary btn-sm">編集</button><buttontype="button" class="btn btn-secondary btn-sm">削除</button></div></div></div></li>'
+                '</p><input type="hidden" class="form-control" placeholder="入力してね" value=' +
+                msg[2] +
+                '/></div><div class="col-5 pb-0"><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-primary btn-sm" name="edit">編集</button><buttontype="button" class="btn btn-secondary btn-sm" name="delete">削除</button></div></div></div></li>'
             );
           } else if (
             msg[0] !== self_authorization &&
@@ -201,6 +221,37 @@
           }
         }
       });
+
+      $("#your_msg_list")
+        .find("button[name='edit']")
+        .click(function () {
+          if ($(this).attr("name") == "edit") {
+            $(this).parent().parent().parent().find("p[name='msg']").hide();
+            $(this)
+              .parent()
+              .parent()
+              .parent()
+              .find("input")
+              .attr("type", "text");
+            $(this).next().hide();
+            $(this).text("終了");
+            $(this).attr("name", "delete");
+          }
+          if ($(this).attr("name") == "delete") {
+            var msg = $(this).parent().parent().parent().find("input").val();
+            $(this).parent().parent().parent().find("p[name='msg']").text(msg);
+            $(this).parent().parent().parent().find("p[name='msg']").show();
+            $(this)
+              .parent()
+              .parent()
+              .parent()
+              .find("input")
+              .attr("type", "hidden");
+            $(this).next().show();
+            $(this).text("編集");
+            $(this).attr("name", "edit");
+          }
+        });
     </script>
   </body>
 </html>
