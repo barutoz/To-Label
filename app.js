@@ -442,6 +442,57 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("edit_msg", (msg) => {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      if (socket.request.session.status == 1) {
+        if (msg.length == 2) {
+          db.all("select * from " + authorization, function (err, row) {
+            let exist;
+            if (err) {
+              console.log(err.message);
+            } else {
+              for (let i = 0; i < row.length; i++) {
+                if (row[i]["control"] == msg[1]) {
+                  exist = true;
+                  var to = row[i]["player2"];
+                  var from = row[i]["player1"];
+                  break;
+                } else {
+                  exist = false;
+                }
+              }
+              if (exist) {
+                db.serialize(() => {
+                  db.run(
+                    "UPDATE " +
+                      authorization +
+                      " SET msg='" +
+                      msg[0] +
+                      "' WHERE control='" +
+                      msg[1] +
+                      "'",
+                    (err) => {
+                      if (err) {
+                        console.error(err.message);
+                      }
+                    }
+                  );
+                });
+                io.to(authorization).emit("receive_editmsg", [
+                  to,
+                  from,
+                  msg[0],
+                  msg[1],
+                ]);
+              }
+            }
+          });
+        }
+      }
+    }
+  });
+
   socket.on("disconnect", () => {
     var authorization = socket.request.session.authorization;
     var user_authorization = socket.request.session.user_authorization;

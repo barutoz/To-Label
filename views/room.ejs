@@ -103,7 +103,7 @@
               <div class="card-body">
                 <ul class="list-group" id="your_msg_list">
                   <% your_msg_list.forEach(element=>{ %>
-                  <li class="list-group-item">
+                  <li class="list-group-item" name="<%= element.control %>">
                     <div class="row">
                       <div class="col-7 pb-0">
                         <p>@<%= element.to_username %></p>
@@ -113,7 +113,7 @@
                           class="form-control"
                           placeholder="入力してね"
                           value="<%= element.msg %>"
-                          name="<%= element.controll %>"
+                          name="<%= element.control %>"
                         />
                       </div>
                       <div class="col-5 pb-0">
@@ -157,9 +157,16 @@
           <div class="card">
             <div class="card-body" id="other_msg_list">
               <% other_msg_list.forEach(element=>{%>
-              <div class="card">
+              <div class="card" name="<%= element.control %>">
                 <div class="card-header">
-                  FROM:<%= element.from_username%> TO:<%= element.to_username %>
+                  <div class="row">
+                    <div class="col">
+                      <p name="header">
+                        FROM:<%= element.from_username%> TO:<%=
+                        element.to_username %>
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div class="card-body">
                   <p class="card-text text-center"><%= element.msg %></p>
@@ -206,11 +213,12 @@
       });
 
       socket.on("receive_msg", function (msg) {
-        console.log(msg);
         if (msg.length == 6) {
           if (msg[0] == self_authorization) {
             $("#your_msg_list").append(
-              '<li class="list-group-item"><div class="row"><div class="col-7 pb-0"><p>@' +
+              '<li class="list-group-item" name="' +
+                msg[5] +
+                '"><div class="row"><div class="col-7 pb-0"><p>@' +
                 msg[4] +
                 '</p><p name="msg">' +
                 msg[2] +
@@ -225,11 +233,13 @@
             msg[1] !== self_authorization
           ) {
             $("#other_msg_list").append(
-              '<div class="card"><div class="card-header">FROM:' +
+              '<div class="card" name=' +
+                msg[5] +
+                '><div class="card-header"><div class="row"><div class="col"><p name="header">FROM:' +
                 msg[3] +
                 " TO:" +
                 msg[4] +
-                '</div><div class="card-body"><p class="card-text text-center">' +
+                '</p></div></div></div><div class="card-body"><p class="card-text text-center">' +
                 msg[2] +
                 "</p></div></div>"
             );
@@ -246,11 +256,54 @@
 
       $(document).on("click", "button[name='complete']", function () {
         var msg = $(this).parent().parent().parent().find("input").val();
-        $(this).parent().parent().find("p[name='msg']").text(msg);
-        $(this).parent().parent().find("p[name='msg']").show();
-        $(this).parent().parent().find("input").attr("type", "hidden");
-        $(this).parent().find("div").show();
-        $(this).hide();
+        var control = $(this)
+          .parent()
+          .parent()
+          .parent()
+          .find("input")
+          .attr("name");
+        socket.emit("edit_msg", [msg, control]);
+      });
+
+      socket.on("receive_editmsg", function (msg) {
+        if (msg.length == 4) {
+          if (msg[1] == self_authorization) {
+            if ($("#your_msg_list").find("li[name='" + msg[3] + "']") !== 0) {
+              $("#your_msg_list")
+                .find("li[name='" + msg[3] + "']")
+                .each(function () {
+                  $(this).find("li[name='" + msg[3] + "']");
+                  $(this).find("p[name='msg']").text(msg[2]);
+                  $(this).find("p[name='msg']").show();
+                  $(this).find("input").attr("type", "hidden");
+                  $(this).find("div").show();
+                  $(this).find("button[name='complete']").hide();
+                });
+            }
+          } else if (
+            msg[0] !== self_authorization &&
+            msg[1] !== self_authorization
+          ) {
+            if ($("#other_msg_list").find("div[name='" + msg[3] + "']") !== 0) {
+              var header = $("#other_msg_list")
+                .find("div[name='" + msg[3] + "']")
+                .find("p[name='header']")
+                .text();
+              $("#other_msg_list")
+                .find("div[name='" + msg[3] + "']")
+                .remove();
+              $("#other_msg_list").append(
+                '<div class="card" name=' +
+                  msg[3] +
+                  '><div class="card-header"><div class="row"><div class="col"><p name="header">' +
+                  header +
+                  '</p></div><div class="col"><p><span class="badge bg-success">修正</span></p></div></div></div><div class="card-body"><p class="card-text text-center">' +
+                  msg[2] +
+                  "</p></div></div>"
+              );
+            }
+          }
+        }
       });
     </script>
   </body>
