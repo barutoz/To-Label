@@ -217,7 +217,6 @@ app.set("view engine", "ejs");
 
 io.on("connection", (socket) => {
   console.log("a user connected");
-
   socket.on("team-join", () => {
     var authorization = socket.request.session.authorization;
     socket.request.session.status = 0;
@@ -382,7 +381,7 @@ io.on("connection", (socket) => {
     var authorization = socket.request.session.authorization;
     if (authorization) {
       socket.request.session.status = 1;
-      console.log("hello");
+
       socket.join(authorization);
     }
   });
@@ -489,6 +488,48 @@ io.on("connection", (socket) => {
             }
           });
         }
+      }
+    }
+  });
+
+  socket.on("delete_msg", (msg) => {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      if (socket.request.session.status == 1) {
+        db.all("select * from " + authorization, function (err, row) {
+          let exist;
+          if (err) {
+            console.log(err.message);
+          } else {
+            for (let i = 0; i < row.length; i++) {
+              if (row[i]["control"] == msg) {
+                exist = true;
+                var to = row[i]["player2"];
+                var from = row[i]["player1"];
+                break;
+              } else {
+                exist = false;
+              }
+            }
+            if (exist) {
+              db.serialize(() => {
+                db.run(
+                  "DELETE FROM " +
+                    authorization +
+                    " WHERE control='" +
+                    msg +
+                    "'",
+                  (err) => {
+                    if (err) {
+                      console.error(err.message);
+                    }
+                  }
+                );
+              });
+              io.to(authorization).emit("receive_deletemsg", [to, from, msg]);
+            }
+          }
+        });
       }
     }
   });
@@ -882,9 +923,9 @@ app.get("/room/*", (req, res) => {
                           "処理に失敗しました。もう一度やり直してください。",
                       });
                     }
-                    console.log(row.length);
+
                     msg_list = row;
-                    console.log(msg_list.length);
+
                     for (let i = 0; i < msg_list.length; i++) {
                       if (
                         msg_list[i]["player1"] == req.session.user_authorization

@@ -184,7 +184,6 @@
       const self_authorization = "<%= self_authorization %>";
 
       $(window).on("load", function () {
-        console.log($("#your_msg_list").find("input"));
         $("#your_msg_list")
           .find("input")
           .each(function () {
@@ -265,6 +264,17 @@
         socket.emit("edit_msg", [msg, control]);
       });
 
+      $(document).on("click", "button[name='delete']", function () {
+        var control = $(this)
+          .parent()
+          .parent()
+          .parent()
+          .parent()
+          .find("input")
+          .attr("name");
+        socket.emit("delete_msg", control);
+      });
+
       socket.on("receive_editmsg", function (msg) {
         if (msg.length == 4) {
           if (msg[1] == self_authorization) {
@@ -300,6 +310,30 @@
                   '</p></div><div class="col"><p><span class="badge bg-success">修正</span></p></div></div></div><div class="card-body"><p class="card-text text-center">' +
                   msg[2] +
                   "</p></div></div>"
+              );
+            }
+          }
+        }
+      });
+
+      socket.on("receive_deletemsg", function (msg) {
+        if (msg.length == 3) {
+          if (msg[1] == self_authorization) {
+            if ($("#your_msg_list").find("li[name='" + msg[2] + "']") !== 0) {
+              $("#your_msg_list")
+                .find("li[name='" + msg[2] + "']")
+                .remove();
+            }
+          } else if (
+            msg[0] !== self_authorization &&
+            msg[1] !== self_authorization
+          ) {
+            if ($("#other_msg_list").find("div[name='" + msg[2] + "']") !== 0) {
+              $("#other_msg_list")
+                .find("div[name='" + msg[2] + "']")
+                .remove();
+              $("#other_msg_list").append(
+                '<div class="card"><div class="card-header"><p><span class="badge bg-danger">削除</span></p></div><div class="card-body"><p class="card-text text-center">削除されました。</p></div></div>'
               );
             }
           }
