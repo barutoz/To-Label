@@ -1007,6 +1007,6 @@ app.post("/profile", (req, res) => {
   }
 });
 
-server.listen(3000, () =>
+server.listen(3000, "0.0.0.0", () =>
   console.log("Server is running \n port: http://localhost:3000/")
 );
