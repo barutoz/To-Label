@@ -118,6 +118,32 @@ function check_authorization(authorization) {
   }
 }
 
+function check_control(authorization, room) {
+  if (number_list.includes(authorization.substring(0, 1))) {
+    return true;
+  } else {
+    db.all("select * from " + room, function (err, row) {
+      if (err) {
+        console.error(err.message);
+      } else {
+        for (let i = 0; i < row.length; i++) {
+          if (row[i]["control"] == authorization) {
+            var exists = true;
+            break;
+          } else {
+            var exists = false;
+          }
+        }
+        if (exists) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    });
+  }
+}
+
 function check_user(authorization) {
   if (number_list.includes(authorization.substring(0, 1))) {
     return true;
@@ -153,6 +179,14 @@ function check_user(authorization) {
 function create_authorization() {
   var authorization = createPassword();
   while (check_authorization(authorization) == true) {
+    authorization = createPassword();
+  }
+  return authorization;
+}
+
+function create_control(room) {
+  var authorization = createPassword();
+  while (check_control(authorization, room) == true) {
     authorization = createPassword();
   }
   return authorization;
@@ -354,24 +388,15 @@ io.on("connection", (socket) => {
   });
 
   socket.on("msg_submit", (msg) => {
-    console.log(msg);
     var authorization = socket.request.session.authorization;
     if (authorization) {
-      console.log("ki");
-      console.log(socket.request.session.status);
       if (socket.request.session.status == 1) {
-        console.log("hi");
         if (msg.length == 2) {
-          console.log(msg);
           db.all(
             "select * from " + authorization + "_userslist",
             function (err, row) {
               if (err) {
                 console.log(err.message);
-                return res.json({
-                  success: false,
-                  message: "処理に失敗しました。もう一度やり直してください。",
-                });
               } else {
                 let to_username;
                 for (let i = 0; i < row.length; i++) {
@@ -380,17 +405,19 @@ io.on("connection", (socket) => {
                     break;
                   }
                 }
+                var control = create_control(authorization);
                 db.serialize(() => {
                   db.run(
                     "INSERT INTO " +
                       authorization +
-                      "(player1, player2, msg, from_username, to_username) VALUES(?, ?, ?, ?, ?)",
+                      "(player1, player2, msg, from_username, to_username, control) VALUES(?, ?, ?, ?, ?, ?)",
                     [
                       socket.request.session.user_authorization,
                       msg[0],
                       msg[1],
                       socket.request.session.username,
                       to_username,
+                      control,
                     ],
                     (err) => {
                       if (err) {
@@ -405,6 +432,7 @@ io.on("connection", (socket) => {
                   msg[1],
                   socket.request.session.username,
                   to_username,
+                  control,
                 ]);
               }
             }
@@ -872,7 +900,7 @@ app.post("/random", (req, res) => {
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, PRIMARY KEY("id" AUTOINCREMENT) );'
+            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, "control" TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT) );'
         );
         db.run(
           'CREATE TABLE "' +

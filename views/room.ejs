@@ -113,6 +113,7 @@
                           class="form-control"
                           placeholder="入力してね"
                           value="<%= element.msg %>"
+                          name="<%= element.controll %>"
                         />
                       </div>
                       <div class="col-5 pb-0">
@@ -206,7 +207,7 @@
 
       socket.on("receive_msg", function (msg) {
         console.log(msg);
-        if (msg.length == 5) {
+        if (msg.length == 6) {
           if (msg[0] == self_authorization) {
             $("#your_msg_list").append(
               '<li class="list-group-item"><div class="row"><div class="col-7 pb-0"><p>@' +
@@ -215,6 +216,8 @@
                 msg[2] +
                 '</p><input type="hidden" class="form-control" placeholder="入力してね" value=' +
                 msg[2] +
+                " name=" +
+                msg[5] +
                 '></div><div class="col-5 pb-0"><button type="button" class="btn btn-primary btn-sm" name="complete" style="display: none;">終了</button><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-primary btn-sm" name="edit">編集</button><buttontype="button" class="btn btn-secondary btn-sm" name="delete">削除</button></div></div></div></li>'
             );
           } else if (
