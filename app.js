@@ -633,7 +633,7 @@ app.get("/login", (req, res) => {
   if (req.session.username) {
     return res.redirect("/home");
   } else {
-    return res.render("login.ejs");
+    return res.render("login.ejs", { error: false });
   }
 });
 

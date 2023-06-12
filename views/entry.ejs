@@ -22,27 +22,72 @@
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/css/style.css" />
     <script src="/send_url.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
   </head>
-  <body style="background-color: rgb(249, 245, 253)">
-    <header class="pt-3" style="padding-left: 1.1rem">
-      <a href="/"><h2 class="title">No title</h2></a>
-      <nav class="nav">
-        <ul>
-          <a href="/login"><li>login</li></a>
-          <a href="/home"><li>Home</li></a>
-          <a href="/profile"><li>Profile</li></a>
-          <li>Music</li>
-          <li>
-            <form action="/logout" method="POST">
-              <button type="submit">ログアウト</button>
-            </form>
-          </li>
-        </ul>
+
+  <body class="container" style="background-color: rgb(249, 245, 253)">
+    <header>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+          <a class="navbar-brand" href="/home">To-Label</a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div
+            class="collapse navbar-collapse justify-content-end"
+            id="navbarNav"
+          >
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="#">
+                  <i class="fa-solid fa-circle-question"></i>
+                </a>
+              </li>
+              <li class="nav-item dropdown">
+                <a
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="navbarDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  <i class="fa-solid fa-user"></i>
+                  <!-- ユーザーアイコンの画像ファイルへのパス -->
+                </a>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="navbarDropdown"
+                >
+                  <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                  <li><a class="dropdown-item" href="/history">History</a></li>
+                  <li><a class="dropdown-item" href="/setting">Setting</a></li>
+                  <li><a class="dropdown-item" href="/help">Help</a></li>
+                  <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
       </nav>
     </header>
+
     <main class="m-4">
       <h1 class="mb-4"><span class="bg-warning">Lobby</span></h1>
       <div class="mb-4 border-bottom" id="text">
@@ -115,6 +160,7 @@
         </div>
       </div>
     </main>
+
     <script>
       var socket = io();
       let timer;
