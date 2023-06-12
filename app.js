@@ -659,12 +659,8 @@ app.get("/login", (req, res) => {
     return res.redirect("/home");
   } else {
     if (req.session.signup_error) {
-      req.session.destroy((err) => {
-        if (err) {
-          console.error(err);
-        }
-        return res.render("login.ejs", { error: false, error2: true });
-      });
+      req.session.signup_error = false;
+      return res.render("login.ejs", { error: false, error2: true });
     }
     return res.render("login.ejs", { error: false, error2: false });
   }
@@ -740,16 +736,11 @@ app.post("/signup", (req, res) => {
 
         // ユーザーの作成やデータベースへの保存などの処理を実装する
         if (pswd_error) {
-          req.session.destroy((err) => {
-            if (err) {
-              console.error(err);
-            }
-            const csrfToken = generateCSRFToken();
-            req.session.signup = csrfToken;
-            return res.render("signup.ejs", {
-              csrfToken: csrfToken,
-              error: true,
-            });
+          const csrfToken = generateCSRFToken();
+          req.session.signup = csrfToken;
+          return res.render("signup.ejs", {
+            csrfToken: csrfToken,
+            error: true,
           });
         } else {
           var authorization = create_user();
@@ -765,13 +756,8 @@ app.post("/signup", (req, res) => {
               }
             );
           });
-          req.session.destroy((err) => {
-            if (err) {
-              console.error(err);
-            }
-            req.session.signup_error = true;
-            return res.redirect("/login");
-          });
+          req.session.signup_error = true;
+          return res.redirect("/login");
         }
       }
     });
@@ -780,7 +766,7 @@ app.post("/signup", (req, res) => {
       if (err) {
         console.error(err);
       }
-      return redirect("/signup");
+      return res.redirect("/signup");
     });
   }
 });
