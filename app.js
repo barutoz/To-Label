@@ -118,6 +118,32 @@ function check_authorization(authorization) {
   }
 }
 
+function check_control(authorization, room) {
+  if (number_list.includes(authorization.substring(0, 1))) {
+    return true;
+  } else {
+    db.all("select * from " + room, function (err, row) {
+      if (err) {
+        console.error(err.message);
+      } else {
+        for (let i = 0; i < row.length; i++) {
+          if (row[i]["control"] == authorization) {
+            var exists = true;
+            break;
+          } else {
+            var exists = false;
+          }
+        }
+        if (exists) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    });
+  }
+}
+
 function check_user(authorization) {
   if (number_list.includes(authorization.substring(0, 1))) {
     return true;
@@ -158,6 +184,14 @@ function create_authorization() {
   return authorization;
 }
 
+function create_control(room) {
+  var authorization = createPassword();
+  while (check_control(authorization, room) == true) {
+    authorization = createPassword();
+  }
+  return authorization;
+}
+
 function create_user() {
   var authorization = createPassword();
   while (check_user(authorization) == true) {
@@ -183,9 +217,9 @@ app.set("view engine", "ejs");
 
 io.on("connection", (socket) => {
   console.log("a user connected");
-
   socket.on("team-join", () => {
     var authorization = socket.request.session.authorization;
+    socket.request.session.status = 0;
     if (authorization) {
       socket.request.session.entry = true;
       for (let i = 0; i < time.length; i++) {
@@ -227,141 +261,365 @@ io.on("connection", (socket) => {
 
   socket.on("prepare", (msg) => {
     if (socket.request.session.authorization) {
-      var authorization = socket.request.session.authorization;
-      var user_authorization = socket.request.session.user_authorization;
-      for (let i = 0; i < time.length; i++) {
-        if (time[i][0] == authorization) {
-          if (time[i][2]) {
-            time[i][2] = false;
-            clearTimeout(time[i][3]);
-            break;
+      if (socket.request.session.status == 0) {
+        var authorization = socket.request.session.authorization;
+        var user_authorization = socket.request.session.user_authorization;
+        for (let i = 0; i < time.length; i++) {
+          if (time[i][0] == authorization) {
+            if (time[i][2]) {
+              time[i][2] = false;
+              clearTimeout(time[i][3]);
+              break;
+            }
           }
         }
-      }
-      if (msg == true) {
-        db.serialize(() => {
-          db.run(
-            "UPDATE " +
-              authorization +
-              "_userslist SET permission=1 WHERE authorization='" +
-              user_authorization +
-              "'"
-          );
-          db.all(
-            "SELECT permission FROM " + authorization + "_userslist",
-            function (err, row) {
-              (err) => {
-                if (err) {
-                  console.error(err.message);
-                  req.session.destroy;
-                  return res.json({
-                    success: false,
-                    message: "処理に失敗しました。もう一度やり直してください。",
-                  });
-                }
-              };
-              for (let i = 0; i < row.length; i++) {
-                if (row[i]["permission"] == 0) {
-                  var complete = false;
-                  break;
-                } else {
-                  var complete = true;
-                }
-              }
-
-              if (row.length < 2) {
-                var complete = false;
-              }
-              if (complete) {
-                var content = [user_authorization, true, true];
-                for (let i = 0; i < time.length; i++) {
-                  if (time[i][0] == authorization) {
-                    time[i][2] = true;
-                    time[i][3] = setTimeout(function () {
-                      db.serialize(() => {
-                        db.run(
-                          "UPDATE room_number SET permission=1, time=" +
-                            time[i][1] +
-                            " WHERE authorization='" +
-                            authorization +
-                            "'"
-                        );
-                      });
-                      io.to(authorization).emit("next-before", true);
-                    }, 3000);
+        if (msg == true) {
+          db.serialize(() => {
+            db.run(
+              "UPDATE " +
+                authorization +
+                "_userslist SET permission=1 WHERE authorization='" +
+                user_authorization +
+                "'"
+            );
+            db.all(
+              "SELECT permission FROM " + authorization + "_userslist",
+              function (err, row) {
+                (err) => {
+                  if (err) {
+                    console.error(err.message);
+                    req.session.destroy;
+                    return res.json({
+                      success: false,
+                      message:
+                        "処理に失敗しました。もう一度やり直してください。",
+                    });
+                  }
+                };
+                for (let i = 0; i < row.length; i++) {
+                  if (row[i]["permission"] == 0) {
+                    var complete = false;
                     break;
+                  } else {
+                    var complete = true;
                   }
                 }
-                io.to(authorization).emit("prepre", content);
-              } else {
-                var content = [user_authorization, true, false];
-                io.to(authorization).emit("prepre", content);
+
+                if (row.length < 2) {
+                  var complete = false;
+                }
+                if (complete) {
+                  var content = [user_authorization, true, true];
+                  for (let i = 0; i < time.length; i++) {
+                    if (time[i][0] == authorization) {
+                      time[i][2] = true;
+                      time[i][3] = setTimeout(function () {
+                        db.serialize(() => {
+                          db.run(
+                            "UPDATE room_number SET permission=1, time=" +
+                              time[i][1] * 60 +
+                              ", original_time=" +
+                              time[i][1] * 60 +
+                              " WHERE authorization='" +
+                              authorization +
+                              "'"
+                          );
+                        });
+                        io.to(authorization).emit("next-before", true);
+                      }, 3000);
+                      break;
+                    }
+                  }
+                  io.to(authorization).emit("prepre", content);
+                } else {
+                  var content = [user_authorization, true, false];
+                  io.to(authorization).emit("prepre", content);
+                }
               }
-            }
-          );
-        });
-      } else {
-        db.serialize(() => {
-          db.run(
-            "UPDATE " +
-              authorization +
-              "_userslist SET permission=0 WHERE authorization='" +
-              user_authorization +
-              "'"
-          );
-        });
-        var content = [user_authorization, false, false];
-        io.to(authorization).emit("prepre", content);
+            );
+          });
+        } else {
+          db.serialize(() => {
+            db.run(
+              "UPDATE " +
+                authorization +
+                "_userslist SET permission=0 WHERE authorization='" +
+                user_authorization +
+                "'"
+            );
+          });
+          var content = [user_authorization, false, false];
+          io.to(authorization).emit("prepre", content);
+        }
       }
     }
   });
 
   socket.on("time", (msg) => {
     if (socket.request.session.authorization) {
-      if (typeof msg == "number") {
-        var authorization = socket.request.session.authorization;
-        for (let i = 0; i < time.length; i++) {
-          if (time[i][0] == authorization) {
-            time[i][1] = msg;
-            break;
+      if (socket.request.session.status == 0) {
+        if (typeof msg == "number") {
+          var authorization = socket.request.session.authorization;
+          for (let i = 0; i < time.length; i++) {
+            if (time[i][0] == authorization) {
+              time[i][1] = msg;
+              break;
+            }
           }
+          io.to(authorization).emit("time_update", msg);
         }
-        io.to(authorization).emit("time_update", msg);
       }
     }
   });
+
   socket.on("next-after", () => {
-    socket.request.session.entry = false;
-    socket.emit("next", true);
+    if (socket.request.session.authorization) {
+      var authorization = socket.request.session.authorization;
+      if (socket.request.session.status == 0) {
+        socket.request.session.entry = false;
+        socket.emit("next", true);
+        let exist;
+        let ix;
+        for (let i = 0; i < time.length; i++) {
+          if (time[i][0] == authorization) {
+            exist = true;
+            ix = i;
+            break;
+          } else {
+            exist = false;
+          }
+        }
+        console.log(ix);
+        if (exist) {
+          console.log("er");
+          if (typeof time[ix][4] == "undefined") {
+            console.log("kinami");
+            clearTimeout(time[ix][3]);
+            let limit = time[ix][1] * 60;
+            time[ix][4] = setInterval(function () {
+              limit = limit - 10;
+              if (limit == 0) {
+                db.serialize(() => {
+                  db.run(
+                    "UPDATE room_number SET permission=2, time=0 WHERE authorization='" +
+                      authorization +
+                      "'",
+                    (err) => {
+                      if (err) {
+                        console.log(err.message);
+                      }
+                    }
+                  );
+                });
+                io.to(authorization).emit("finish");
+                clearInterval(time[ix][4]);
+              } else {
+                db.serialize(() => {
+                  db.run(
+                    "UPDATE room_number SET permission=1, time=" +
+                      limit +
+                      " WHERE authorization='" +
+                      authorization +
+                      "'",
+                    (err) => {
+                      if (err) {
+                        console.log(err.message);
+                      }
+                    }
+                  );
+                });
+              }
+            }, 10000);
+          }
+        }
+      }
+    }
+  });
+
+  socket.on("room-join", () => {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      socket.request.session.status = 1;
+
+      socket.join(authorization);
+    }
+  });
+
+  socket.on("msg_submit", (msg) => {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      if (socket.request.session.status == 1) {
+        if (msg.length == 2) {
+          db.all(
+            "select * from " + authorization + "_userslist",
+            function (err, row) {
+              if (err) {
+                console.log(err.message);
+              } else {
+                let to_username;
+                for (let i = 0; i < row.length; i++) {
+                  if (row[i]["authorization"] == msg[0]) {
+                    to_username = row[i]["user"];
+                    break;
+                  }
+                }
+                var control = create_control(authorization);
+                db.serialize(() => {
+                  db.run(
+                    "INSERT INTO " +
+                      authorization +
+                      "(player1, player2, msg, from_username, to_username, control) VALUES(?, ?, ?, ?, ?, ?)",
+                    [
+                      socket.request.session.user_authorization,
+                      msg[0],
+                      msg[1],
+                      socket.request.session.username,
+                      to_username,
+                      control,
+                    ],
+                    (err) => {
+                      if (err) {
+                        console.error(err.message);
+                      }
+                    }
+                  );
+                });
+                io.to(authorization).emit("receive_msg", [
+                  socket.request.session.user_authorization,
+                  msg[0],
+                  msg[1],
+                  socket.request.session.username,
+                  to_username,
+                  control,
+                ]);
+              }
+            }
+          );
+        }
+      }
+    }
+  });
+
+  socket.on("edit_msg", (msg) => {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      if (socket.request.session.status == 1) {
+        if (msg.length == 2) {
+          db.all("select * from " + authorization, function (err, row) {
+            let exist;
+            if (err) {
+              console.log(err.message);
+            } else {
+              for (let i = 0; i < row.length; i++) {
+                if (row[i]["control"] == msg[1]) {
+                  exist = true;
+                  var to = row[i]["player2"];
+                  var from = row[i]["player1"];
+                  break;
+                } else {
+                  exist = false;
+                }
+              }
+              if (exist) {
+                db.serialize(() => {
+                  db.run(
+                    "UPDATE " +
+                      authorization +
+                      " SET msg='" +
+                      msg[0] +
+                      "' WHERE control='" +
+                      msg[1] +
+                      "'",
+                    (err) => {
+                      if (err) {
+                        console.error(err.message);
+                      }
+                    }
+                  );
+                });
+                io.to(authorization).emit("receive_editmsg", [
+                  to,
+                  from,
+                  msg[0],
+                  msg[1],
+                ]);
+              }
+            }
+          });
+        }
+      }
+    }
+  });
+
+  socket.on("delete_msg", (msg) => {
+    var authorization = socket.request.session.authorization;
+    if (authorization) {
+      if (socket.request.session.status == 1) {
+        db.all("select * from " + authorization, function (err, row) {
+          let exist;
+          if (err) {
+            console.log(err.message);
+          } else {
+            for (let i = 0; i < row.length; i++) {
+              if (row[i]["control"] == msg) {
+                exist = true;
+                var to = row[i]["player2"];
+                var from = row[i]["player1"];
+                break;
+              } else {
+                exist = false;
+              }
+            }
+            if (exist) {
+              db.serialize(() => {
+                db.run(
+                  "DELETE FROM " +
+                    authorization +
+                    " WHERE control='" +
+                    msg +
+                    "'",
+                  (err) => {
+                    if (err) {
+                      console.error(err.message);
+                    }
+                  }
+                );
+              });
+              io.to(authorization).emit("receive_deletemsg", [to, from, msg]);
+            }
+          }
+        });
+      }
+    }
   });
 
   socket.on("disconnect", () => {
     var authorization = socket.request.session.authorization;
     var user_authorization = socket.request.session.user_authorization;
     if (authorization) {
-      for (let i = 0; i < time.length; i++) {
-        if (time[i][0] == authorization) {
-          if (time[i][2]) {
-            time[i][2] = false;
-
-            clearTimeout(time[i][3]);
-
-            break;
+      if (socket.request.session.status == 0) {
+        for (let i = 0; i < time.length; i++) {
+          if (time[i][0] == authorization) {
+            if (time[i][2]) {
+              time[i][2] = false;
+              clearTimeout(time[i][3]);
+              break;
+            }
           }
         }
+        if (socket.request.session.entry) {
+          db.serialize(() => {
+            db.run(
+              "DELETE FROM " +
+                authorization +
+                "_userslist WHERE authorization='" +
+                user_authorization +
+                "'"
+            );
+          });
+        }
+        io.to(authorization).emit("leave", user_authorization);
       }
-      if (socket.request.session.entry) {
-        db.serialize(() => {
-          db.run(
-            "DELETE FROM " +
-              authorization +
-              "_userslist WHERE authorization='" +
-              user_authorization +
-              "'"
-          );
-        });
-      }
-      io.to(authorization).emit("leave", user_authorization);
       console.log("user disconnected");
     }
   });
@@ -602,6 +860,8 @@ app.get("/room/*", (req, res) => {
           if (row[i]["authorization"] == req.session.authorization) {
             var password = row[i]["number"];
             var permission = row[i]["permission"];
+            var time = row[i]["time"];
+            var original_time = row[i]["original_time"];
             var exists = true;
             break;
           } else {
@@ -678,32 +938,94 @@ app.get("/room/*", (req, res) => {
             );
           });
         } else {
+          let other_users = [];
+          let other_users_authorization;
+          let other_users_user;
+          let redirecting = true;
+          let msg_list = [];
+          let your_msg_list = [];
+          let other_msg_list = [];
           db.all(
             "select * from " + req.session.authorization + "_userslist",
             function (err, row) {
-              (err) => {
-                if (err) {
-                  console.error(err.message);
-                  req.session.destroy;
-                  return res.json({
-                    success: false,
-                    message: "処理に失敗しました。もう一度やり直してください。",
-                  });
-                }
-              };
+              if (err) {
+                console.error(err.message);
+                req.session.destroy;
+                return res.json({
+                  success: false,
+                  message: "処理に失敗しました。もう一度やり直してください。",
+                });
+              }
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["authorization"] == req.session.user_authorization) {
-                  var redirecting = false;
-                  break;
+                  redirecting = false;
                 } else {
-                  var redirecting = true;
+                  other_users_user = row[i]["user"];
+                  other_users_authorization = row[i]["authorization"];
+                  other_users[i] = {
+                    user: other_users_user,
+                    authorization: other_users_authorization,
+                  };
                 }
               }
               if (redirecting) {
                 req.session.team_error2 = true;
                 return res.redirect("/home");
               } else {
-                return res.render("room.ejs");
+                db.all(
+                  "select * from " + req.session.authorization,
+                  function (err, row) {
+                    if (err) {
+                      console.error(err.message);
+                      req.session.destroy;
+                      return res.json({
+                        success: false,
+                        message:
+                          "処理に失敗しました。もう一度やり直してください。",
+                      });
+                    }
+
+                    msg_list = row;
+                    if (permission == 1) {
+                      for (let i = 0; i < msg_list.length; i++) {
+                        if (
+                          msg_list[i]["player1"] ==
+                          req.session.user_authorization
+                        ) {
+                          your_msg_list.push(msg_list[i]);
+                        } else if (
+                          msg_list[i]["player1"] !==
+                            req.session.user_authorization &&
+                          msg_list[i]["player2"] !==
+                            req.session.user_authorization
+                        ) {
+                          other_msg_list.push(msg_list[i]);
+                        }
+                      }
+                      return res.render("room.ejs", {
+                        other_users: other_users,
+                        your_msg_list: your_msg_list,
+                        other_msg_list: other_msg_list,
+                        self_authorization: req.session.user_authorization,
+                        time: time,
+                        original_time: original_time,
+                      });
+                    } else if ((permission = 2)) {
+                      for (let i = 0; i < msg_list.length; i++) {
+                        if (
+                          msg_list[i]["player2"] ==
+                          req.session.user_authorization
+                        ) {
+                          your_msg_list.push(msg_list[i]);
+                        }
+                      }
+                      return res.render("result.ejs", {
+                        your_msg_list: your_msg_list,
+                        username: req.session.username,
+                      });
+                    }
+                  }
+                );
               }
             }
           );
@@ -726,16 +1048,14 @@ app.post("/random", (req, res) => {
     var number = number_generate(number);
     var authorization = create_authorization();
     db.all("select number from room_number", function (err, row) {
-      (err) => {
-        if (err) {
-          console.error(err.message);
-          req.session.destroy;
-          return res.json({
-            success: false,
-            message: "処理に失敗しました。もう一度やり直してください。",
-          });
-        }
-      };
+      if (err) {
+        console.error(err.message);
+        req.session.destroy;
+        return res.json({
+          success: false,
+          message: "処理に失敗しました。もう一度やり直してください。",
+        });
+      }
       var rowrow = row.length + 1;
       db.serialize(() => {
         db.run(
@@ -750,7 +1070,7 @@ app.post("/random", (req, res) => {
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '" ( "id"	INTEGER NOT NULL UNIQUE, "from"	TEXT NOT NULL, "to"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, PRIMARY KEY("id" AUTOINCREMENT) );'
+            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, "control" TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT) );'
         );
         db.run(
           'CREATE TABLE "' +
@@ -885,6 +1205,6 @@ app.post("/profile", (req, res) => {
   }
 });
 
-server.listen(3000, () =>
+server.listen(3000, "0.0.0.0", () =>
   console.log("Server is running \n port: http://localhost:3000/")
 );

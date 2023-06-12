@@ -37,7 +37,7 @@ header {
   color: rgb(209, 248, 234);
   font-family: "Sacramento", cursive;
 }
-li {
+header li {
   color: mediumaquamarine;
   list-style: none;
   display: inline-block;

@@ -1,37 +1,59 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Hello World</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-  <header>
-    <a href="/"><h2 class="title">No title</h2></a>
-    <nav class="nav">
-      <ul>
-        <a href="/home"><li>Home</li></a>
-        <a href="/profile"><li>Profile</li></a>
-        <li>Music</li>
-        <li></li>
-      </ul>
-    </nav>
-  </header>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* ページの真ん中に表示させるためのスタイル */
+      body {
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f2f2f2;
+      }
 
-  <h1>新規登録</h1>
-  <form id="signup-form" action="/signup" method="post">
-    <label for="username">ユーザー名:</label>
-    <input type="text" id="username" name="username" required><br><br>
+      /* フォームのスタイル */
+      form {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/"><h2 class="title">No title</h2></a>
+      <nav class="nav">
+        <ul>
+          <a href="/home"><li>Home</li></a>
+          <a href="/profile"><li>Profile</li></a>
+          <li>Music</li>
+          <li></li>
+        </ul>
+      </nav>
+    </header>
 
-    <label for="password">パスワード:</label>
-    <input type="password" id="password" name="password" required><br><br>
+    <h1>新規登録</h1>
+    <form id="signup-form" action="/signup" method="post">
+      <label for="username">ユーザー名:</label>
+      <input type="text" id="username" name="username" required /><br /><br />
 
-    <!-- CSRF トークンを追加 -->
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label for="password">パスワード:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        required
+      /><br /><br />
 
-    <input type="submit" value="新規登録">
-  </form>
+      <!-- CSRF トークンを追加 -->
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
 
-  <script src="/send_url.js"></script>
-</body>
+      <input type="submit" value="新規登録" />
+    </form>
+
+    <script src="/send_url.js"></script>
+  </body>
 </html>
