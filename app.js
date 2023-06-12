@@ -26,33 +26,25 @@ io.engine.use(sessionMiddleware);
 
 const number_list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
-// メッセージの配列を初期化
-let messages = [];
-
 function number_check(number) {
   if ((number = 0)) {
     return false;
   } else {
     db.all("select number from room_number", function (err, row) {
-      (err) => {
-        if (err) {
-          console.error(err.message);
-          req.session.destroy;
-          return res.json({
-            success: false,
-            message: "処理に失敗しました。もう一度やり直してください。",
-          });
-        }
-      };
-      for (var ini = 0; ini < row.length; ini++) {
-        if (row[ini]["number"] == number) {
-          var exists = true;
-        }
-      }
-      if (exists) {
-        return false;
+      if (err) {
+        console.error(err.message);
+        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
       } else {
-        return true;
+        for (var ini = 0; ini < row.length; ini++) {
+          if (row[ini]["number"] == number) {
+            var exists = true;
+          }
+        }
+        if (exists) {
+          return false;
+        } else {
+          return true;
+        }
       }
     });
   }
@@ -91,28 +83,23 @@ function check_authorization(authorization) {
     return true;
   } else {
     db.all("select * from room_number", function (err, row) {
-      (err) => {
-        if (err) {
-          console.error(err.message);
-          req.session.destroy;
-          return res.json({
-            success: false,
-            message: "処理に失敗しました。もう一度やり直してください。",
-          });
-        }
-      };
-      for (let i = 0; i < row.length; i++) {
-        if (row[i]["authorization"] == authorization) {
-          var exists = true;
-          break;
-        } else {
-          var exists = false;
-        }
-      }
-      if (exists) {
-        return true;
+      if (err) {
+        console.error(err.message);
+        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
       } else {
-        return false;
+        for (let i = 0; i < row.length; i++) {
+          if (row[i]["authorization"] == authorization) {
+            var exists = true;
+            break;
+          } else {
+            var exists = false;
+          }
+        }
+        if (exists) {
+          return true;
+        } else {
+          return false;
+        }
       }
     });
   }
@@ -125,6 +112,7 @@ function check_control(authorization, room) {
     db.all("select * from " + room, function (err, row) {
       if (err) {
         console.error(err.message);
+        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
       } else {
         for (let i = 0; i < row.length; i++) {
           if (row[i]["control"] == authorization) {
@@ -149,28 +137,23 @@ function check_user(authorization) {
     return true;
   } else {
     db.all("select * from users", function (err, row) {
-      (err) => {
-        if (err) {
-          console.error(err.message);
-          req.session.destroy;
-          return res.json({
-            success: false,
-            message: "処理に失敗しました。もう一度やり直してください。",
-          });
-        }
-      };
-      for (let i = 0; i < row.length; i++) {
-        if (row[i]["authorization"] == authorization) {
-          var exists = true;
-          break;
-        } else {
-          var exists = false;
-        }
-      }
-      if (exists) {
-        return true;
+      if (err) {
+        console.error(err.message);
+        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
       } else {
-        return false;
+        for (let i = 0; i < row.length; i++) {
+          if (row[i]["authorization"] == authorization) {
+            var exists = true;
+            break;
+          } else {
+            var exists = false;
+          }
+        }
+        if (exists) {
+          return true;
+        } else {
+          return false;
+        }
       }
     });
   }
@@ -285,55 +268,48 @@ io.on("connection", (socket) => {
             db.all(
               "SELECT permission FROM " + authorization + "_userslist",
               function (err, row) {
-                (err) => {
-                  if (err) {
-                    console.error(err.message);
-                    req.session.destroy;
-                    return res.json({
-                      success: false,
-                      message:
-                        "処理に失敗しました。もう一度やり直してください。",
-                    });
-                  }
-                };
-                for (let i = 0; i < row.length; i++) {
-                  if (row[i]["permission"] == 0) {
-                    var complete = false;
-                    break;
-                  } else {
-                    var complete = true;
-                  }
-                }
-
-                if (row.length < 2) {
-                  var complete = false;
-                }
-                if (complete) {
-                  var content = [user_authorization, true, true];
-                  for (let i = 0; i < time.length; i++) {
-                    if (time[i][0] == authorization) {
-                      time[i][2] = true;
-                      time[i][3] = setTimeout(function () {
-                        db.serialize(() => {
-                          db.run(
-                            "UPDATE room_number SET permission=1, time=" +
-                              time[i][1] * 60 +
-                              ", original_time=" +
-                              time[i][1] * 60 +
-                              " WHERE authorization='" +
-                              authorization +
-                              "'"
-                          );
-                        });
-                        io.to(authorization).emit("next-before", true);
-                      }, 3000);
+                if (err) {
+                  console.error(err.message);
+                } else {
+                  for (let i = 0; i < row.length; i++) {
+                    if (row[i]["permission"] == 0) {
+                      var complete = false;
                       break;
+                    } else {
+                      var complete = true;
                     }
                   }
-                  io.to(authorization).emit("prepre", content);
-                } else {
-                  var content = [user_authorization, true, false];
-                  io.to(authorization).emit("prepre", content);
+
+                  if (row.length < 2) {
+                    var complete = false;
+                  }
+                  if (complete) {
+                    var content = [user_authorization, true, true];
+                    for (let i = 0; i < time.length; i++) {
+                      if (time[i][0] == authorization) {
+                        time[i][2] = true;
+                        time[i][3] = setTimeout(function () {
+                          db.serialize(() => {
+                            db.run(
+                              "UPDATE room_number SET permission=1, time=" +
+                                time[i][1] * 60 +
+                                ", original_time=" +
+                                time[i][1] * 60 +
+                                " WHERE authorization='" +
+                                authorization +
+                                "'"
+                            );
+                          });
+                          io.to(authorization).emit("next-before", true);
+                        }, 3000);
+                        break;
+                      }
+                    }
+                    io.to(authorization).emit("prepre", content);
+                  } else {
+                    var content = [user_authorization, true, false];
+                    io.to(authorization).emit("prepre", content);
+                  }
                 }
               }
             );
