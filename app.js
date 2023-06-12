@@ -243,6 +243,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("prepare", (msg) => {
+    ///修正が必要そう(if(complete)時の処理)
+    var error;
     if (socket.request.session.authorization) {
       if (socket.request.session.status == 0) {
         var authorization = socket.request.session.authorization;
@@ -263,56 +265,72 @@ io.on("connection", (socket) => {
                 authorization +
                 "_userslist SET permission=1 WHERE authorization='" +
                 user_authorization +
-                "'"
-            );
-            db.all(
-              "SELECT permission FROM " + authorization + "_userslist",
-              function (err, row) {
+                "'",
+              (err) => {
                 if (err) {
-                  console.error(err.message);
-                } else {
-                  for (let i = 0; i < row.length; i++) {
-                    if (row[i]["permission"] == 0) {
-                      var complete = false;
-                      break;
-                    } else {
-                      var complete = true;
-                    }
-                  }
-
-                  if (row.length < 2) {
-                    var complete = false;
-                  }
-                  if (complete) {
-                    var content = [user_authorization, true, true];
-                    for (let i = 0; i < time.length; i++) {
-                      if (time[i][0] == authorization) {
-                        time[i][2] = true;
-                        time[i][3] = setTimeout(function () {
-                          db.serialize(() => {
-                            db.run(
-                              "UPDATE room_number SET permission=1, time=" +
-                                time[i][1] * 60 +
-                                ", original_time=" +
-                                time[i][1] * 60 +
-                                " WHERE authorization='" +
-                                authorization +
-                                "'"
-                            );
-                          });
-                          io.to(authorization).emit("next-before", true);
-                        }, 3000);
-                        break;
-                      }
-                    }
-                    io.to(authorization).emit("prepre", content);
-                  } else {
-                    var content = [user_authorization, true, false];
-                    io.to(authorization).emit("prepre", content);
-                  }
+                  console.log(err.message);
+                  error = true;
                 }
               }
             );
+            if (!error) {
+              db.all(
+                "SELECT permission FROM " + authorization + "_userslist",
+                function (err, row) {
+                  if (err) {
+                    console.error(err.message);
+                  } else {
+                    for (let i = 0; i < row.length; i++) {
+                      if (row[i]["permission"] == 0) {
+                        var complete = false;
+                        break;
+                      } else {
+                        var complete = true;
+                      }
+                    }
+
+                    if (row.length < 2) {
+                      var complete = false;
+                    }
+                    if (complete) {
+                      var content = [user_authorization, true, true];
+                      for (let i = 0; i < time.length; i++) {
+                        if (time[i][0] == authorization) {
+                          time[i][2] = true;
+                          time[i][3] = setTimeout(function () {
+                            db.serialize(() => {
+                              db.run(
+                                "UPDATE room_number SET permission=1, time=" +
+                                  time[i][1] * 60 +
+                                  ", original_time=" +
+                                  time[i][1] * 60 +
+                                  " WHERE authorization='" +
+                                  authorization +
+                                  "'",
+                                (err) => {
+                                  if (err) {
+                                    console.log(err.message);
+                                    error = true;
+                                  }
+                                }
+                              );
+                            });
+                            if (!error) {
+                              io.to(authorization).emit("next-before", true);
+                            }
+                          }, 3000);
+                          break;
+                        }
+                      }
+                      io.to(authorization).emit("prepre", content);
+                    } else {
+                      var content = [user_authorization, true, false];
+                      io.to(authorization).emit("prepre", content);
+                    }
+                  }
+                }
+              );
+            }
           });
         } else {
           db.serialize(() => {
@@ -321,11 +339,19 @@ io.on("connection", (socket) => {
                 authorization +
                 "_userslist SET permission=0 WHERE authorization='" +
                 user_authorization +
-                "'"
+                "'",
+              (err) => {
+                if (err) {
+                  console.log(err.message);
+                  error = true;
+                }
+              }
             );
           });
-          var content = [user_authorization, false, false];
-          io.to(authorization).emit("prepre", content);
+          if (!error) {
+            var content = [user_authorization, false, false];
+            io.to(authorization).emit("prepre", content);
+          }
         }
       }
     }
@@ -349,6 +375,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("next-after", () => {
+    var error;
     if (socket.request.session.authorization) {
       var authorization = socket.request.session.authorization;
       if (socket.request.session.status == 0) {
@@ -383,12 +410,18 @@ io.on("connection", (socket) => {
                     (err) => {
                       if (err) {
                         console.log(err.message);
+                        error = true;
                       }
                     }
                   );
                 });
-                io.to(authorization).emit("finish");
-                clearInterval(time[ix][4]);
+                if (error) {
+                  io.to(authorization).emit("error");
+                  clearInterval(time[ix][4]);
+                } else {
+                  io.to(authorization).emit("finish");
+                  clearInterval(time[ix][4]);
+                }
               } else {
                 db.serialize(() => {
                   db.run(
@@ -416,12 +449,12 @@ io.on("connection", (socket) => {
     var authorization = socket.request.session.authorization;
     if (authorization) {
       socket.request.session.status = 1;
-
       socket.join(authorization);
     }
   });
 
   socket.on("msg_submit", (msg) => {
+    var error;
     var authorization = socket.request.session.authorization;
     if (authorization) {
       if (socket.request.session.status == 1) {
@@ -456,18 +489,21 @@ io.on("connection", (socket) => {
                     (err) => {
                       if (err) {
                         console.error(err.message);
+                        error = true;
                       }
                     }
                   );
                 });
-                io.to(authorization).emit("receive_msg", [
-                  socket.request.session.user_authorization,
-                  msg[0],
-                  msg[1],
-                  socket.request.session.username,
-                  to_username,
-                  control,
-                ]);
+                if (!error) {
+                  io.to(authorization).emit("receive_msg", [
+                    socket.request.session.user_authorization,
+                    msg[0],
+                    msg[1],
+                    socket.request.session.username,
+                    to_username,
+                    control,
+                  ]);
+                }
               }
             }
           );
@@ -477,6 +513,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("edit_msg", (msg) => {
+    var error;
     var authorization = socket.request.session.authorization;
     if (authorization) {
       if (socket.request.session.status == 1) {
@@ -509,16 +546,19 @@ io.on("connection", (socket) => {
                     (err) => {
                       if (err) {
                         console.error(err.message);
+                        error = true;
                       }
                     }
                   );
                 });
-                io.to(authorization).emit("receive_editmsg", [
-                  to,
-                  from,
-                  msg[0],
-                  msg[1],
-                ]);
+                if (!error) {
+                  io.to(authorization).emit("receive_editmsg", [
+                    to,
+                    from,
+                    msg[0],
+                    msg[1],
+                  ]);
+                }
               }
             }
           });
@@ -528,6 +568,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("delete_msg", (msg) => {
+    var error;
     var authorization = socket.request.session.authorization;
     if (authorization) {
       if (socket.request.session.status == 1) {
@@ -557,11 +598,14 @@ io.on("connection", (socket) => {
                   (err) => {
                     if (err) {
                       console.error(err.message);
+                      error = true;
                     }
                   }
                 );
               });
-              io.to(authorization).emit("receive_deletemsg", [to, from, msg]);
+              if (!error) {
+                io.to(authorization).emit("receive_deletemsg", [to, from, msg]);
+              }
             }
           }
         });
@@ -590,7 +634,12 @@ io.on("connection", (socket) => {
                 authorization +
                 "_userslist WHERE authorization='" +
                 user_authorization +
-                "'"
+                "'",
+              (err) => {
+                if (err) {
+                  console.error(err.message);
+                }
+              }
             );
           });
         }
@@ -839,7 +888,9 @@ app.get("/room/*", (req, res) => {
                 }
                 ///トラブル頻発エリア(rowが定義されていないエラー)
                 for (let i = 0; i < row.length; i++) {
-                  if (row[i]["user"] == req.session.username) {
+                  if (
+                    row[i]["authorization"] == req.session.user_authorization
+                  ) {
                     var self_exists = true;
                     var new_i = i;
                     break;
@@ -857,7 +908,13 @@ app.get("/room/*", (req, res) => {
                       req.session.username +
                       "',0,'" +
                       req.session.user_authorization +
-                      "');"
+                      "');",
+                    (err) => {
+                      if (err) {
+                        console.error(err.message);
+                        return res.render("error.ejs", { code: "500" });
+                      }
+                    }
                   );
                 }
                 for (let i = 0; i < row.length; i++) {
@@ -999,17 +1056,35 @@ app.post("/random", (req, res) => {
             String(number) +
             ',"' +
             authorization +
-            '",0)'
+            '",0)',
+          (err) => {
+            if (err) {
+              console.error(err.message);
+              return res.render("error.ejs", { code: "500" });
+            }
+          }
         );
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, "control" TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT) );'
+            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, "control" TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT) );',
+          (err) => {
+            if (err) {
+              console.error(err.message);
+              return res.render("error.ejs", { code: "500" });
+            }
+          }
         );
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,"permission"	INTEGER NOT NULL, "authorization"	TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT));'
+            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,"permission"	INTEGER NOT NULL, "authorization"	TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT));',
+          (err) => {
+            if (err) {
+              console.error(err.message);
+              return res.render("error.ejs", { code: "500" });
+            }
+          }
         );
       });
     });
@@ -1030,7 +1105,7 @@ app.post("/random", (req, res) => {
   }
 });
 
-app.post("/logout", (req, res) => {
+app.get("/logout", (req, res) => {
   // セッションを破棄してログアウト
   req.session.destroy((err) => {
     if (err) {
@@ -1131,6 +1206,14 @@ app.post("/profile", (req, res) => {
     req.session.destroy;
     return res.redirect("/login");
   }
+});
+
+app.get("/internal_error", (req, res) => {
+  return res.render("error.ejs", { code: "500" });
+});
+
+app.get("*", (req, res) => {
+  return res.render("error.ejs", { code: "404" });
 });
 
 server.listen(3000, "0.0.0.0", () =>
