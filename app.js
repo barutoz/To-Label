@@ -640,16 +640,10 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   // ユーザーの検索
   db.all("SELECT * FROM users", function (err, row) {
-    (err) => {
-      if (err) {
-        console.error(err.message);
-        req.session.destroy;
-        return res.json({
-          success: false,
-          message: "処理に失敗しました。もう一度やり直してください。",
-        });
-      }
-    };
+    if (err) {
+      console.error(err.message);
+      return res.render("error.ejs", { code: "500" });
+    }
     for (let i = 0; i < row.length; i++) {
       if (req.body.username == row[i]["username"]) {
         if (req.body.password == row[i]["password"]) {
@@ -694,12 +688,8 @@ app.post("/signup", (req, res) => {
     // 既存のユーザーネームとの重複をチェック
     db.all("SELECT * FROM users", function (err, row) {
       if (err) {
-        console.error(err);
-        req.session.destroy;
-        return res.json({
-          success: false,
-          message: "エラーが発生しました。もう一度やり直してください。",
-        });
+        console.error(err.message);
+        return res.render("error.ejs", { code: "500" });
       } else {
         for (let i = 0; i < row.length; i++) {
           // ユーザーネーム・パスワードが両方とも同じものがある場合
@@ -726,11 +716,7 @@ app.post("/signup", (req, res) => {
               (err) => {
                 if (err) {
                   console.error(err.message);
-                  req.session.destroy;
-                  return res.json({
-                    success: false,
-                    message: "登録に失敗しました。もう一度やり直してください。",
-                  });
+                  return res.render("error.ejs", { code: "500" });
                 }
               }
             );
@@ -775,57 +761,56 @@ app.post("/room", (req, res) => {
     return res.redirect("/home");
   }
   db.all("select * from room_number", function (err, row) {
-    for (let i = 0; i < row.length; i++) {
-      if (row[i]["number"] == req.body.room) {
-        var team_number = row[i]["id"];
-        var authorization = row[i]["authorization"];
-        var permission = row[i]["permission"];
-        break;
-      } else {
-        var team_number = false;
-      }
-    }
-    if (team_number == false) {
-      req.session.team_error = true;
-      return res.redirect("/home");
+    if (err) {
+      console.error(err.message);
+      return res.render("error.ejs", { code: "500" });
     } else {
-      if (permission !== 0) {
-        db.all(
-          "select * from " + authorization + "_userslist",
-          function (err, row) {
-            (err) => {
+      for (let i = 0; i < row.length; i++) {
+        if (row[i]["number"] == req.body.room) {
+          var team_number = row[i]["id"];
+          var authorization = row[i]["authorization"];
+          var permission = row[i]["permission"];
+          break;
+        } else {
+          var team_number = false;
+        }
+      }
+      if (team_number == false) {
+        req.session.team_error = true;
+        return res.redirect("/home");
+      } else {
+        if (permission !== 0) {
+          db.all(
+            "select * from " + authorization + "_userslist",
+            function (err, row) {
               if (err) {
                 console.error(err.message);
-                req.session.destroy;
-                return res.json({
-                  success: false,
-                  message: "処理に失敗しました。もう一度やり直してください。",
-                });
+                return res.render("error.ejs", { code: "500" });
               }
-            };
-            for (let i = 0; i < row.length; i++) {
-              if (row[i]["authorization"] == req.session.user_authorization) {
-                var redirecting = false;
-                break;
-              } else {
-                var redirecting = true;
+              for (let i = 0; i < row.length; i++) {
+                if (row[i]["authorization"] == req.session.user_authorization) {
+                  var redirecting = false;
+                  break;
+                } else {
+                  var redirecting = true;
+                }
               }
-            }
-            if (redirecting) {
-              req.session.team_error2 = true;
+              if (redirecting) {
+                req.session.team_error2 = true;
 
-              return res.redirect("/home");
-            } else {
-              req.session.team_number = team_number;
-              req.session.authorization = authorization;
-              return res.redirect("/room/" + String(team_number));
+                return res.redirect("/home");
+              } else {
+                req.session.team_number = team_number;
+                req.session.authorization = authorization;
+                return res.redirect("/room/" + String(team_number));
+              }
             }
-          }
-        );
-      } else {
-        req.session.team_number = team_number;
-        req.session.authorization = authorization;
-        return res.redirect("/room/" + String(team_number));
+          );
+        } else {
+          req.session.team_number = team_number;
+          req.session.authorization = authorization;
+          return res.redirect("/room/" + String(team_number));
+        }
       }
     }
   });
@@ -845,16 +830,10 @@ app.get("/room/*", (req, res) => {
       return res.redirect("/home");
     }
     db.all("select * from room_number", function (err, row) {
-      (err) => {
-        if (err) {
-          console.error(err.message);
-          req.session.destroy;
-          return res.json({
-            success: false,
-            message: "処理に失敗しました。もう一度やり直してください。",
-          });
-        }
-      };
+      if (err) {
+        console.error(err.message);
+        return res.render("error.ejs", { code: "500" });
+      }
       for (let i = 0; i < row.length; i++) {
         if (row[i]["id"] == req.session.team_number) {
           if (row[i]["authorization"] == req.session.authorization) {
@@ -878,17 +857,10 @@ app.get("/room/*", (req, res) => {
             db.all(
               "select * from " + req.session.authorization + "_userslist",
               function (err, row) {
-                (err) => {
-                  if (err) {
-                    console.error(err.message);
-                    req.session.destroy;
-                    return res.json({
-                      success: false,
-                      message:
-                        "処理に失敗しました。もう一度やり直してください。",
-                    });
-                  }
-                };
+                if (err) {
+                  console.error(err.message);
+                  return res.render("error.ejs", { code: "500" });
+                }
                 ///トラブル頻発エリア(rowが定義されていないエラー)
                 for (let i = 0; i < row.length; i++) {
                   if (row[i]["user"] == req.session.username) {
@@ -950,11 +922,7 @@ app.get("/room/*", (req, res) => {
             function (err, row) {
               if (err) {
                 console.error(err.message);
-                req.session.destroy;
-                return res.json({
-                  success: false,
-                  message: "処理に失敗しました。もう一度やり直してください。",
-                });
+                return res.render("error.ejs", { code: "500" });
               }
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["authorization"] == req.session.user_authorization) {
@@ -977,14 +945,8 @@ app.get("/room/*", (req, res) => {
                   function (err, row) {
                     if (err) {
                       console.error(err.message);
-                      req.session.destroy;
-                      return res.json({
-                        success: false,
-                        message:
-                          "処理に失敗しました。もう一度やり直してください。",
-                      });
+                      return res.render("error.ejs", { code: "500" });
                     }
-
                     msg_list = row;
                     if (permission == 1) {
                       for (let i = 0; i < msg_list.length; i++) {
@@ -1050,11 +1012,7 @@ app.post("/random", (req, res) => {
     db.all("select number from room_number", function (err, row) {
       if (err) {
         console.error(err.message);
-        req.session.destroy;
-        return res.json({
-          success: false,
-          message: "処理に失敗しました。もう一度やり直してください。",
-        });
+        return res.render("error.ejs", { code: "500" });
       }
       var rowrow = row.length + 1;
       db.serialize(() => {
@@ -1134,16 +1092,10 @@ app.post("/profile", (req, res) => {
   const newPassword = req.body.password;
   if (req.session.userId && req.session.username) {
     db.all("SELECT * FROM users", function (err, row) {
-      (err) => {
-        if (err) {
-          console.error(err.message);
-          req.session.destroy;
-          return res.json({
-            success: false,
-            message: "処理に失敗しました。もう一度やり直してください。",
-          });
-        }
-      };
+      if (err) {
+        console.error(err.message);
+        return res.render("error.ejs", { code: "500" });
+      }
       for (let i = 0; i < row.length; i++) {
         if (row[i]["id"] == req.session.userId) {
           if (row[i]["password"] == oldUserpass) {

@@ -49,6 +49,9 @@
       <button type="submit">Login</button>
 
       <a href="/signup">新規登録</a>
+      <% if (error){%>
+      <h5 class="text-danger">ユーザー名またはパスワードが違います。</h5>
+      <% } %>
     </form>
 
     <script src="/send_url.js"></script>
