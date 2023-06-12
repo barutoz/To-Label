@@ -658,7 +658,15 @@ app.get("/login", (req, res) => {
   if (req.session.username) {
     return res.redirect("/home");
   } else {
-    return res.render("login.ejs", { error: false });
+    if (req.session.signup_error) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error(err);
+        }
+        return res.render("login.ejs", { error: false, error2: true });
+      });
+    }
+    return res.render("login.ejs", { error: false, error2: false });
   }
 });
 
@@ -689,8 +697,12 @@ app.post("/login", (req, res) => {
       req.session.user_authorization = authorization;
       return res.redirect("/home");
     } else {
-      req.session.destroy;
-      return res.render("login.ejs"), { error: true };
+      req.session.destroy((err) => {
+        if (err) {
+          console.error(err);
+        }
+        return res.render("login.ejs"), { error: true, error2: false };
+      });
     }
   });
 });
@@ -700,7 +712,7 @@ app.get("/signup", (req, res) => {
   // CSRF トークンを生成して追加
   const csrfToken = generateCSRFToken();
   req.session.signup = csrfToken;
-  res.render("signup.ejs", { csrfToken });
+  res.render("signup.ejs", { csrfToken: csrfToken, error: false });
 });
 
 // サインアップの POST リクエストの処理
@@ -725,12 +737,19 @@ app.post("/signup", (req, res) => {
             }
           }
         }
+
         // ユーザーの作成やデータベースへの保存などの処理を実装する
         if (pswd_error) {
-          req.session.destroy;
-          return res.json({
-            success: false,
-            message: "別のパスワードにしてください。",
+          req.session.destroy((err) => {
+            if (err) {
+              console.error(err);
+            }
+            const csrfToken = generateCSRFToken();
+            req.session.signup = csrfToken;
+            return res.render("signup.ejs", {
+              csrfToken: csrfToken,
+              error: true,
+            });
           });
         } else {
           var authorization = create_user();
@@ -746,14 +765,23 @@ app.post("/signup", (req, res) => {
               }
             );
           });
-          req.session.destroy;
-          return res.json({ success: true, redirectUrl: "/login" });
+          req.session.destroy((err) => {
+            if (err) {
+              console.error(err);
+            }
+            req.session.signup_error = true;
+            return res.redirect("/login");
+          });
         }
       }
     });
   } else {
-    req.session.destroy;
-    return redirect("/signup");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      return redirect("/signup");
+    });
   }
 });
 
@@ -771,15 +799,23 @@ app.get("/home", (req, res) => {
     }
     res.render("home.ejs", { username: req.session.username, msg: msg }); // home.ejsにusernameを渡す
   } else {
-    req.session.destroy;
-    return res.redirect("/login");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      return res.redirect("/login");
+    });
   }
 });
 
 app.post("/room", (req, res) => {
   if (req.session.user_authorization == false) {
-    req.session.destroy;
-    return res.redirect("/login");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      return res.redirect("/login");
+    });
   }
   if (req.body.room.length !== 4) {
     req.session.team_error = true;
@@ -843,8 +879,12 @@ app.post("/room", (req, res) => {
 
 app.get("/room/*", (req, res) => {
   if (req.session.username == false) {
-    req.session.destroy;
-    return res.redirect("/login");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      return res.redirect("/login");
+    });
   }
   var query = req.originalUrl;
   var query_number = query.split("/");
@@ -869,8 +909,12 @@ app.get("/room/*", (req, res) => {
             var exists = true;
             break;
           } else {
-            req.session.destroy;
-            return res.redirect("/login");
+            req.session.destroy((err) => {
+              if (err) {
+                console.error(err);
+              }
+              return res.redirect("/login");
+            });
           }
         } else {
           var exists = false;
@@ -1026,8 +1070,12 @@ app.get("/room/*", (req, res) => {
           );
         }
       } else {
-        req.session.destroy;
-        return res.redirect("/login");
+        req.session.destroy((err) => {
+          if (err) {
+            console.error(err);
+          }
+          return res.redirect("/login");
+        });
       }
     });
   }
@@ -1035,8 +1083,12 @@ app.get("/room/*", (req, res) => {
 
 app.post("/random", (req, res) => {
   if (req.session.user_authorization == false) {
-    req.session.destroy;
-    return res.redirect("/login");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      return res.redirect("/login");
+    });
   }
   if (req.body.random == "true") {
     var number = Math.floor(Math.random() * 10000);
@@ -1115,6 +1167,16 @@ app.get("/logout", (req, res) => {
   });
 });
 
+app.post("/logout", (req, res) => {
+  // セッションを破棄してログアウト
+  req.session.destroy((err) => {
+    if (err) {
+      console.error(err);
+    }
+    return res.redirect("/");
+  });
+});
+
 app.get("/profile", (req, res) => {
   // セッションにログインの状態を確認
   if (req.session.userId && req.session.username) {
@@ -1131,8 +1193,12 @@ app.get("/profile", (req, res) => {
     res.render("profile.ejs", { pswd_error: pswd_error });
   } else {
     // ログインしていない場合、ログインページにリダイレクト
-    req.session.destroy;
-    return res.redirect("/login");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      return res.redirect("/login");
+    });
   }
 });
 
@@ -1197,14 +1263,22 @@ app.post("/profile", (req, res) => {
           req.session.login_error = true;
           return res.redirect("/profile");
         } else {
-          req.session.destroy;
-          return res.redirect("/login");
+          req.session.destroy((err) => {
+            if (err) {
+              console.error(err);
+            }
+            return res.redirect("/login");
+          });
         }
       }
     });
   } else {
-    req.session.destroy;
-    return res.redirect("/login");
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      return res.redirect("/login");
+    });
   }
 });
 
