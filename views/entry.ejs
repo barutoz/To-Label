@@ -184,7 +184,9 @@
         });
       $("#btn-").click(function () {
         var now = $("#time").val();
-        socket.emit("time", Number(now) - 1);
+        if (!(Number(now) <= 1)) {
+          socket.emit("time", Number(now) - 1);
+        }
       });
       socket.on("time_update", function (msg) {
         $("#time").val(Number(msg));
