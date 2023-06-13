@@ -697,7 +697,7 @@ app.post("/login", (req, res) => {
         if (err) {
           console.error(err);
         }
-        return res.render("login.ejs"), { error: true, error2: false };
+        return res.render("login.ejs", { error: true, error2: false });
       });
     }
   });
