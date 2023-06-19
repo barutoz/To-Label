@@ -1,17 +1,33 @@
-const express = require("express");
-const app = express(); ////きなみともや
-const multer = require("multer"); // ファイルのアップロードを処理するためのミドルウェア
-const path = require("path");
-const upload = multer({ dest: "public/uploads/" }); // アップロード先のディレクトリを指定
-const sqlite3 = require("sqlite3");
-const db = new sqlite3.Database("DV.sqlite3");
-var session = require("express-session");
-const http = require("http");
-const { url } = require("inspector");
-var server = http.createServer(app);
-var io = require("socket.io")(server);
+///app.jsの処理を細かくファイル(/routes以下のファイル)に分けました。app.jsには、主にアクセスが来たときにどのファイルに処理をさせるのか書いてあります。
+///socket.ioの部分の処理は、別のファイルに切り分けられなかったので、socketioはapp.jsに記述しました。
 
-const sessionMiddleware = session({
+///モジュールのimport文
+const express = require("express");
+const sqlite3 = require("sqlite3");
+const http = require("http");
+const app = express();
+const server = http.createServer(app);
+const io = require("socket.io")(server);
+const session = require("express-session");
+
+///処理を飛ばす先のファイル(/routes以下)
+const introductionRouter = require("./routes/introduction");
+const loginRouter = require("./routes/login");
+const randomRouter = require("./routes/random");
+const room_joinRouter = require("./routes/room_join");
+const roomRouter = require("./routes/room");
+const signupRouter = require("./routes/signup");
+const homeRouter = require("./routes/home");
+const logoutRouter = require("./routes/logout");
+const profileRouter = require("./routes/profile");
+const internal_errorRouter = require("./routes/internal_error");
+const notfoundRouter = require("./routes/notfound");
+
+///socketioや上の各処理で、共通利用される関数は/function以下のファイルに記述
+const authorization_js = require("./function/authorization");
+
+///sessionを設定
+sessionMiddleware = session({
   secret: "secret",
   resave: false,
   saveUninitialized: false,
@@ -21,184 +37,19 @@ const sessionMiddleware = session({
     maxage: 1000 * 60 * 30,
   },
 });
-app.use(sessionMiddleware);
-io.engine.use(sessionMiddleware);
 
-const number_list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+app.use(sessionMiddleware); ///sessionをexpressで使うと宣言
+io.engine.use(sessionMiddleware); ///sessionをsocket.ioでも使うと宣言、これによりexpressとsocketioでsessionが共有される
 
-function number_check(number) {
-  if ((number = 0)) {
-    return false;
-  } else {
-    db.all("select number from room_number", function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
-      } else {
-        for (var ini = 0; ini < row.length; ini++) {
-          if (row[ini]["number"] == number) {
-            var exists = true;
-          }
-        }
-        if (exists) {
-          return false;
-        } else {
-          return true;
-        }
-      }
-    });
-  }
-}
+let time = []; ///sqliteのデータベースに入れるほど、長期間保存しておく必要のない、socketioで使われるデータをここに格納
 
-function number_generate(number) {
-  if (number_check(number) == true) {
-    return number;
-  } else {
-    while (number_check(number) == false) {
-      var number = Math.floor(Math.random() * 10000);
-    }
-    return number;
-  }
-}
-
-const createPassword = () => {
-  var alphabet = "abcdefghijklmnopqrstuvwxyz";
-  var alphabetUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  var numbers = "0123456789";
-
-  var passBase = alphabet + alphabetUpper + numbers;
-
-  var len = 12; // 12桁
-  var password = "";
-
-  for (var i = 0; i < len; i++) {
-    password += passBase.charAt(Math.floor(Math.random() * passBase.length));
-  }
-
-  return password;
-};
-
-function check_authorization(authorization) {
-  if (number_list.includes(authorization.substring(0, 1))) {
-    return true;
-  } else {
-    db.all("select * from room_number", function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
-      } else {
-        for (let i = 0; i < row.length; i++) {
-          if (row[i]["authorization"] == authorization) {
-            var exists = true;
-            break;
-          } else {
-            var exists = false;
-          }
-        }
-        if (exists) {
-          return true;
-        } else {
-          return false;
-        }
-      }
-    });
-  }
-}
-
-function check_control(authorization, room) {
-  if (number_list.includes(authorization.substring(0, 1))) {
-    return true;
-  } else {
-    db.all("select * from " + room, function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
-      } else {
-        for (let i = 0; i < row.length; i++) {
-          if (row[i]["control"] == authorization) {
-            var exists = true;
-            break;
-          } else {
-            var exists = false;
-          }
-        }
-        if (exists) {
-          return true;
-        } else {
-          return false;
-        }
-      }
-    });
-  }
-}
-
-function check_user(authorization) {
-  if (number_list.includes(authorization.substring(0, 1))) {
-    return true;
-  } else {
-    db.all("select * from users", function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return false; ///厳密にいうと対策が必要。だけど、ほぼほぼerrが発生することはないし、数字被りも起きない、起きるとしても天文学的な確率なので考えない。
-      } else {
-        for (let i = 0; i < row.length; i++) {
-          if (row[i]["authorization"] == authorization) {
-            var exists = true;
-            break;
-          } else {
-            var exists = false;
-          }
-        }
-        if (exists) {
-          return true;
-        } else {
-          return false;
-        }
-      }
-    });
-  }
-}
-
-function create_authorization() {
-  var authorization = createPassword();
-  while (check_authorization(authorization) == true) {
-    authorization = createPassword();
-  }
-  return authorization;
-}
-
-function create_control(room) {
-  var authorization = createPassword();
-  while (check_control(authorization, room) == true) {
-    authorization = createPassword();
-  }
-  return authorization;
-}
-
-function create_user() {
-  var authorization = createPassword();
-  while (check_user(authorization) == true) {
-    var authorization = createPassword();
-  }
-  return authorization;
-}
-
-// CSRF トークンの生成関数
-function generateCSRFToken() {
-  // ランダムなトークンを生成
-  const token =
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15);
-  return token;
-}
-
-let time = [];
-
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })); ///おまじない
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
+///以下socketioの処理
 io.on("connection", (socket) => {
+  ///フロント側とバック側でsocketioの接続が始まったことを意味する
   console.log("a user connected");
   socket.on("team-join", () => {
     var authorization = socket.request.session.authorization;
@@ -259,6 +110,7 @@ io.on("connection", (socket) => {
           }
         }
         if (msg == true) {
+          let db = new sqlite3.Database("DV.sqlite3");
           db.serialize(() => {
             db.run(
               "UPDATE " +
@@ -269,6 +121,7 @@ io.on("connection", (socket) => {
               (err) => {
                 if (err) {
                   console.log(err.message);
+                  db.close();
                   error = true;
                 }
               }
@@ -279,7 +132,9 @@ io.on("connection", (socket) => {
                 function (err, row) {
                   if (err) {
                     console.error(err.message);
+                    db.close();
                   } else {
+                    db.close();
                     for (let i = 0; i < row.length; i++) {
                       if (row[i]["permission"] == 0) {
                         var complete = false;
@@ -298,6 +153,7 @@ io.on("connection", (socket) => {
                         if (time[i][0] == authorization) {
                           time[i][2] = true;
                           time[i][3] = setTimeout(function () {
+                            db = new sqlite3.Database("DV.sqlite3");
                             db.serialize(() => {
                               db.run(
                                 "UPDATE room_number SET permission=1, time=" +
@@ -310,14 +166,16 @@ io.on("connection", (socket) => {
                                 (err) => {
                                   if (err) {
                                     console.log(err.message);
+                                    db.close();
                                     error = true;
                                   }
                                 }
                               );
+                              if (!error) {
+                                db.close();
+                                io.to(authorization).emit("next-before", true);
+                              }
                             });
-                            if (!error) {
-                              io.to(authorization).emit("next-before", true);
-                            }
                           }, 3000);
                           break;
                         }
@@ -333,6 +191,7 @@ io.on("connection", (socket) => {
             }
           });
         } else {
+          let db = new sqlite3.Database("DV.sqlite3");
           db.serialize(() => {
             db.run(
               "UPDATE " +
@@ -344,14 +203,16 @@ io.on("connection", (socket) => {
                 if (err) {
                   console.log(err.message);
                   error = true;
+                  db.close();
                 }
               }
             );
+            if (!error) {
+              db.close();
+              var content = [user_authorization, false, false];
+              io.to(authorization).emit("prepre", content);
+            }
           });
-          if (!error) {
-            var content = [user_authorization, false, false];
-            io.to(authorization).emit("prepre", content);
-          }
         }
       }
     }
@@ -402,6 +263,7 @@ io.on("connection", (socket) => {
             time[ix][4] = setInterval(function () {
               limit = limit - 10;
               if (limit == 0) {
+                db = new sqlite3.Database("DV.sqlite3");
                 db.serialize(() => {
                   db.run(
                     "UPDATE room_number SET permission=2, time=0 WHERE authorization='" +
@@ -414,15 +276,17 @@ io.on("connection", (socket) => {
                       }
                     }
                   );
+                  db.close();
+                  if (error) {
+                    io.to(authorization).emit("error");
+                    clearInterval(time[ix][4]);
+                  } else {
+                    io.to(authorization).emit("finish");
+                    clearInterval(time[ix][4]);
+                  }
                 });
-                if (error) {
-                  io.to(authorization).emit("error");
-                  clearInterval(time[ix][4]);
-                } else {
-                  io.to(authorization).emit("finish");
-                  clearInterval(time[ix][4]);
-                }
               } else {
+                db = new sqlite3.Database("DV.sqlite3");
                 db.serialize(() => {
                   db.run(
                     "UPDATE room_number SET permission=1, time=" +
@@ -436,6 +300,7 @@ io.on("connection", (socket) => {
                       }
                     }
                   );
+                  db.close();
                 });
               }
             }, 10000);
@@ -459,12 +324,15 @@ io.on("connection", (socket) => {
     if (authorization) {
       if (socket.request.session.status == 1) {
         if (msg.length == 2) {
+          let db = new sqlite3.Database("DV.sqlite3");
           db.all(
             "select * from " + authorization + "_userslist",
             function (err, row) {
               if (err) {
+                db.close();
                 console.log(err.message);
               } else {
+                db.close();
                 let to_username;
                 for (let i = 0; i < row.length; i++) {
                   if (row[i]["authorization"] == msg[0]) {
@@ -472,7 +340,12 @@ io.on("connection", (socket) => {
                     break;
                   }
                 }
-                var control = create_control(authorization);
+                db = new sqlite3.Database("DV.sqlite3");
+                var control = authorization_js.create_authorization(
+                  authorization,
+                  db,
+                  "control"
+                );
                 db.serialize(() => {
                   db.run(
                     "INSERT INTO " +
@@ -493,6 +366,7 @@ io.on("connection", (socket) => {
                       }
                     }
                   );
+                  db.close();
                 });
                 if (!error) {
                   io.to(authorization).emit("receive_msg", [
@@ -518,11 +392,14 @@ io.on("connection", (socket) => {
     if (authorization) {
       if (socket.request.session.status == 1) {
         if (msg.length == 2) {
+          let db = new sqlite3.Database("DV.sqlite3");
           db.all("select * from " + authorization, function (err, row) {
             let exist;
             if (err) {
               console.log(err.message);
+              db.close();
             } else {
+              db.close();
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["control"] == msg[1]) {
                   exist = true;
@@ -534,6 +411,7 @@ io.on("connection", (socket) => {
                 }
               }
               if (exist) {
+                db = new sqlite3.Database("DV.sqlite3");
                 db.serialize(() => {
                   db.run(
                     "UPDATE " +
@@ -550,6 +428,7 @@ io.on("connection", (socket) => {
                       }
                     }
                   );
+                  db.close();
                 });
                 if (!error) {
                   io.to(authorization).emit("receive_editmsg", [
@@ -572,10 +451,12 @@ io.on("connection", (socket) => {
     var authorization = socket.request.session.authorization;
     if (authorization) {
       if (socket.request.session.status == 1) {
+        let db = new sqlite3.Database("DV.sqlite3");
         db.all("select * from " + authorization, function (err, row) {
           let exist;
           if (err) {
             console.log(err.message);
+            db.close();
           } else {
             for (let i = 0; i < row.length; i++) {
               if (row[i]["control"] == msg) {
@@ -588,6 +469,7 @@ io.on("connection", (socket) => {
               }
             }
             if (exist) {
+              db = new sqlite3.Database("DV.sqlite3");
               db.serialize(() => {
                 db.run(
                   "DELETE FROM " +
@@ -602,6 +484,7 @@ io.on("connection", (socket) => {
                     }
                   }
                 );
+                db.close();
               });
               if (!error) {
                 io.to(authorization).emit("receive_deletemsg", [to, from, msg]);
@@ -628,6 +511,7 @@ io.on("connection", (socket) => {
           }
         }
         if (socket.request.session.entry) {
+          let db = new sqlite3.Database("DV.sqlite3");
           db.serialize(() => {
             db.run(
               "DELETE FROM " +
@@ -641,6 +525,7 @@ io.on("connection", (socket) => {
                 }
               }
             );
+            db.close();
           });
         }
         io.to(authorization).emit("leave", user_authorization);
@@ -650,631 +535,18 @@ io.on("connection", (socket) => {
   });
 });
 
-app.get("/", (req, res) => {
-  res.render("index.ejs");
-});
+app.use("/", introductionRouter);
+app.use("/home", homeRouter);
+app.use("/internal_error", internal_errorRouter);
+app.use("/login", loginRouter);
+app.use("/logout", logoutRouter);
+app.use("/profile", profileRouter);
+app.use("/random", randomRouter);
+app.use("/room", roomRouter);
+app.use("/room/*", room_joinRouter);
+app.use("/signup", signupRouter);
 
-app.get("/login", (req, res) => {
-  if (req.session.username) {
-    return res.redirect("/home");
-  } else {
-    if (req.session.signup_error) {
-      req.session.signup_error = false;
-      return res.render("login.ejs", { error: false, error2: true });
-    }
-    return res.render("login.ejs", { error: false, error2: false });
-  }
-});
-
-app.post("/login", (req, res) => {
-  // ユーザーの検索
-  db.all("SELECT * FROM users", function (err, row) {
-    if (err) {
-      console.error(err.message);
-      return res.render("error.ejs", { code: "500" });
-    }
-    for (let i = 0; i < row.length; i++) {
-      if (req.body.username == row[i]["username"]) {
-        if (req.body.password == row[i]["password"]) {
-          var login_id = row[i]["id"];
-          var authorization = row[i]["authorization"];
-          var login = true;
-          break;
-        } else {
-          var login = false;
-        }
-      } else {
-        var login = false;
-      }
-    }
-    if (login) {
-      req.session.userId = login_id;
-      req.session.username = req.body.username;
-      req.session.user_authorization = authorization;
-      return res.redirect("/home");
-    } else {
-      req.session.destroy((err) => {
-        if (err) {
-          console.error(err);
-        }
-        return res.render("login.ejs", { error: true, error2: false });
-      });
-    }
-  });
-});
-
-// サインアップページの表示
-app.get("/signup", (req, res) => {
-  // CSRF トークンを生成して追加
-  const csrfToken = generateCSRFToken();
-  req.session.signup = csrfToken;
-  res.render("signup.ejs", { csrfToken: csrfToken, error: false });
-});
-
-// サインアップの POST リクエストの処理
-app.post("/signup", (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-  const received_csrfToken = req.body._csrf;
-  const session_csrfToken = req.session.signup;
-  if (received_csrfToken == session_csrfToken) {
-    // 既存のユーザーネームとの重複をチェック
-    db.all("SELECT * FROM users", function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return res.render("error.ejs", { code: "500" });
-      } else {
-        for (let i = 0; i < row.length; i++) {
-          // ユーザーネーム・パスワードが両方とも同じものがある場合
-          if (row[i]["username"] == username) {
-            if (row[i]["password"] == password) {
-              var pswd_error = true;
-              break;
-            }
-          }
-        }
-
-        // ユーザーの作成やデータベースへの保存などの処理を実装する
-        if (pswd_error) {
-          const csrfToken = generateCSRFToken();
-          req.session.signup = csrfToken;
-          return res.render("signup.ejs", {
-            csrfToken: csrfToken,
-            error: true,
-          });
-        } else {
-          var authorization = create_user();
-          db.serialize(() => {
-            db.run(
-              "INSERT INTO users (username, password, authorization) VALUES (?, ?, ?)",
-              [username, password, authorization],
-              (err) => {
-                if (err) {
-                  console.error(err.message);
-                  return res.render("error.ejs", { code: "500" });
-                }
-              }
-            );
-          });
-          req.session.signup_error = true;
-          return res.redirect("/login");
-        }
-      }
-    });
-  } else {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-      }
-      return res.redirect("/signup");
-    });
-  }
-});
-
-app.get("/home", (req, res) => {
-  if (req.session.username) {
-    if (req.session.team_error) {
-      req.session.team_error = false;
-      msg = "不正な番号です。";
-    } else if (req.session.team_error2) {
-      req.session.team_error2 = false;
-
-      msg = "このセッションは締め切られてます。";
-    } else {
-      msg = "";
-    }
-    res.render("home.ejs", { username: req.session.username, msg: msg }); // home.ejsにusernameを渡す
-  } else {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-      }
-      return res.redirect("/login");
-    });
-  }
-});
-
-app.post("/room", (req, res) => {
-  if (req.session.user_authorization == false) {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-      }
-      return res.redirect("/login");
-    });
-  }
-  if (req.body.room.length !== 4) {
-    req.session.team_error = true;
-    return res.redirect("/home");
-  }
-  db.all("select * from room_number", function (err, row) {
-    if (err) {
-      console.error(err.message);
-      return res.render("error.ejs", { code: "500" });
-    } else {
-      for (let i = 0; i < row.length; i++) {
-        if (row[i]["number"] == req.body.room) {
-          var team_number = row[i]["id"];
-          var authorization = row[i]["authorization"];
-          var permission = row[i]["permission"];
-          break;
-        } else {
-          var team_number = false;
-        }
-      }
-      if (team_number == false) {
-        req.session.team_error = true;
-        return res.redirect("/home");
-      } else {
-        if (permission !== 0) {
-          db.all(
-            "select * from " + authorization + "_userslist",
-            function (err, row) {
-              if (err) {
-                console.error(err.message);
-                return res.render("error.ejs", { code: "500" });
-              }
-              for (let i = 0; i < row.length; i++) {
-                if (row[i]["authorization"] == req.session.user_authorization) {
-                  var redirecting = false;
-                  break;
-                } else {
-                  var redirecting = true;
-                }
-              }
-              if (redirecting) {
-                req.session.team_error2 = true;
-
-                return res.redirect("/home");
-              } else {
-                req.session.team_number = team_number;
-                req.session.authorization = authorization;
-                return res.redirect("/room/" + String(team_number));
-              }
-            }
-          );
-        } else {
-          req.session.team_number = team_number;
-          req.session.authorization = authorization;
-          return res.redirect("/room/" + String(team_number));
-        }
-      }
-    }
-  });
-});
-
-app.get("/room/*", (req, res) => {
-  if (req.session.username == false) {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-      }
-      return res.redirect("/login");
-    });
-  }
-  var query = req.originalUrl;
-  var query_number = query.split("/");
-  if (req.session.team_number == false) {
-    return res.redirect("/home");
-  } else {
-    if (!(query_number[2] == req.session.team_number)) {
-      return res.redirect("/home");
-    }
-    db.all("select * from room_number", function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return res.render("error.ejs", { code: "500" });
-      }
-      for (let i = 0; i < row.length; i++) {
-        if (row[i]["id"] == req.session.team_number) {
-          if (row[i]["authorization"] == req.session.authorization) {
-            var password = row[i]["number"];
-            var permission = row[i]["permission"];
-            var time = row[i]["time"];
-            var original_time = row[i]["original_time"];
-            var exists = true;
-            break;
-          } else {
-            req.session.destroy((err) => {
-              if (err) {
-                console.error(err);
-              }
-              return res.redirect("/login");
-            });
-          }
-        } else {
-          var exists = false;
-        }
-      }
-      if (exists) {
-        if (permission == 0) {
-          db.serialize(() => {
-            db.all(
-              "select * from " + req.session.authorization + "_userslist",
-              function (err, row) {
-                if (err) {
-                  console.error(err.message);
-                  return res.render("error.ejs", { code: "500" });
-                }
-                ///トラブル頻発エリア(rowが定義されていないエラー)
-                for (let i = 0; i < row.length; i++) {
-                  if (
-                    row[i]["authorization"] == req.session.user_authorization
-                  ) {
-                    var self_exists = true;
-                    var new_i = i;
-                    break;
-                  } else {
-                    self_exists = false;
-                  }
-                }
-                if (self_exists) {
-                  row.splice(new_i, 1);
-                } else {
-                  db.run(
-                    "INSERT INTO " +
-                      req.session.authorization +
-                      "_userslist (user,permission,authorization) VALUES('" +
-                      req.session.username +
-                      "',0,'" +
-                      req.session.user_authorization +
-                      "');",
-                    (err) => {
-                      if (err) {
-                        console.error(err.message);
-                        return res.render("error.ejs", { code: "500" });
-                      }
-                    }
-                  );
-                }
-                for (let i = 0; i < row.length; i++) {
-                  row[i]["id"] = String(i + 2);
-                }
-                username = req.session.username;
-                self_authorization = req.session.user_authorization;
-                if (password < 1000) {
-                  if (password < 100) {
-                    if (password < 10) {
-                      password = "000" + String(password);
-                    } else {
-                      password = "00" + String(password);
-                    }
-                  } else {
-                    password = "0" + String(password);
-                  }
-                }
-                return res.render("entry.ejs", {
-                  username: username,
-                  password: password,
-                  user_list: row,
-                  self_authorization: self_authorization,
-                });
-              }
-            );
-          });
-        } else {
-          let other_users = [];
-          let other_users_authorization;
-          let other_users_user;
-          let redirecting = true;
-          let msg_list = [];
-          let your_msg_list = [];
-          let other_msg_list = [];
-          db.all(
-            "select * from " + req.session.authorization + "_userslist",
-            function (err, row) {
-              if (err) {
-                console.error(err.message);
-                return res.render("error.ejs", { code: "500" });
-              }
-              for (let i = 0; i < row.length; i++) {
-                if (row[i]["authorization"] == req.session.user_authorization) {
-                  redirecting = false;
-                } else {
-                  other_users_user = row[i]["user"];
-                  other_users_authorization = row[i]["authorization"];
-                  other_users[i] = {
-                    user: other_users_user,
-                    authorization: other_users_authorization,
-                  };
-                }
-              }
-              if (redirecting) {
-                req.session.team_error2 = true;
-                return res.redirect("/home");
-              } else {
-                db.all(
-                  "select * from " + req.session.authorization,
-                  function (err, row) {
-                    if (err) {
-                      console.error(err.message);
-                      return res.render("error.ejs", { code: "500" });
-                    }
-                    msg_list = row;
-                    if (permission == 1) {
-                      for (let i = 0; i < msg_list.length; i++) {
-                        if (
-                          msg_list[i]["player1"] ==
-                          req.session.user_authorization
-                        ) {
-                          your_msg_list.push(msg_list[i]);
-                        } else if (
-                          msg_list[i]["player1"] !==
-                            req.session.user_authorization &&
-                          msg_list[i]["player2"] !==
-                            req.session.user_authorization
-                        ) {
-                          other_msg_list.push(msg_list[i]);
-                        }
-                      }
-                      return res.render("room.ejs", {
-                        other_users: other_users,
-                        your_msg_list: your_msg_list,
-                        other_msg_list: other_msg_list,
-                        self_authorization: req.session.user_authorization,
-                        time: time,
-                        original_time: original_time,
-                      });
-                    } else if ((permission = 2)) {
-                      for (let i = 0; i < msg_list.length; i++) {
-                        if (
-                          msg_list[i]["player2"] ==
-                          req.session.user_authorization
-                        ) {
-                          your_msg_list.push(msg_list[i]);
-                        }
-                      }
-                      return res.render("result.ejs", {
-                        your_msg_list: your_msg_list,
-                        username: req.session.username,
-                      });
-                    }
-                  }
-                );
-              }
-            }
-          );
-        }
-      } else {
-        req.session.destroy((err) => {
-          if (err) {
-            console.error(err);
-          }
-          return res.redirect("/login");
-        });
-      }
-    });
-  }
-});
-
-app.post("/random", (req, res) => {
-  if (req.session.user_authorization == false) {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-      }
-      return res.redirect("/login");
-    });
-  }
-  if (req.body.random == "true") {
-    var number = Math.floor(Math.random() * 10000);
-    var number = number_generate(number);
-    var authorization = create_authorization();
-    db.all("select number from room_number", function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return res.render("error.ejs", { code: "500" });
-      }
-      var rowrow = row.length + 1;
-      db.serialize(() => {
-        db.run(
-          "INSERT INTO room_number (id,number,authorization,permission) VALUES(" +
-            String(rowrow) +
-            "," +
-            String(number) +
-            ',"' +
-            authorization +
-            '",0)',
-          (err) => {
-            if (err) {
-              console.error(err.message);
-              return res.render("error.ejs", { code: "500" });
-            }
-          }
-        );
-        db.run(
-          'CREATE TABLE "' +
-            authorization +
-            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, "control" TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT) );',
-          (err) => {
-            if (err) {
-              console.error(err.message);
-              return res.render("error.ejs", { code: "500" });
-            }
-          }
-        );
-        db.run(
-          'CREATE TABLE "' +
-            authorization +
-            '_userslist" ("id"	INTEGER NOT NULL UNIQUE,"user"	TEXT NOT NULL,"permission"	INTEGER NOT NULL, "authorization"	TEXT NOT NULL UNIQUE, PRIMARY KEY("id" AUTOINCREMENT));',
-          (err) => {
-            if (err) {
-              console.error(err.message);
-              return res.render("error.ejs", { code: "500" });
-            }
-          }
-        );
-      });
-    });
-    if (number < 1000) {
-      new_number = "0" + String(number);
-      if (number < 100) {
-        new_number = "0" + new_number;
-        if (number < 10) {
-          new_number = "0" + new_number;
-        }
-      }
-    } else {
-      new_number = String(number);
-    }
-    res.send(new_number);
-  } else {
-    res.send(false);
-  }
-});
-
-app.get("/logout", (req, res) => {
-  // セッションを破棄してログアウト
-  req.session.destroy((err) => {
-    if (err) {
-      console.error(err);
-    }
-    return res.redirect("/");
-  });
-});
-
-app.post("/logout", (req, res) => {
-  // セッションを破棄してログアウト
-  req.session.destroy((err) => {
-    if (err) {
-      console.error(err);
-    }
-    return res.redirect("/");
-  });
-});
-
-app.get("/profile", (req, res) => {
-  // セッションにログインの状態を確認
-  if (req.session.userId && req.session.username) {
-    if (req.session.pswd_error) {
-      req.session.pswd_error = false;
-      pswd_error = "このパスワードは使用できません。";
-    } else if (req.session.login_error) {
-      req.session.login_error = false;
-      pswd_error = "今のパスワードが違います。";
-    } else {
-      pswd_error = "";
-    }
-    // ログイン済みの場合、ホームページを表示
-    res.render("profile.ejs", { pswd_error: pswd_error });
-  } else {
-    // ログインしていない場合、ログインページにリダイレクト
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-      }
-      return res.redirect("/login");
-    });
-  }
-});
-
-app.post("/profile", (req, res) => {
-  const userId = req.session.userId;
-  const oldUserpass = req.body.olduserpass;
-  const newUsername = req.body.username;
-  const newPassword = req.body.password;
-  if (req.session.userId && req.session.username) {
-    db.all("SELECT * FROM users", function (err, row) {
-      if (err) {
-        console.error(err.message);
-        return res.render("error.ejs", { code: "500" });
-      }
-      for (let i = 0; i < row.length; i++) {
-        if (row[i]["id"] == req.session.userId) {
-          if (row[i]["password"] == oldUserpass) {
-            var login = true;
-            break;
-          } else {
-            var login = false;
-            var login_error = true;
-            break;
-          }
-        } else {
-          var login = false;
-        }
-      }
-      if (login) {
-        // 同じユーザ名・パスワードを防止する。(同じユーザー名はOK)
-        for (let i = 0; i < row.length; i++) {
-          if (row[i]["username"] == newUsername) {
-            if (row[i]["password"] == newPassword) {
-              var pswd_error = true;
-              break;
-            }
-          }
-        }
-        if (pswd_error) {
-          req.session.pswd_error = true;
-          return res.redirect("/profile");
-        }
-        db.serialize(() => {
-          db.run(
-            "UPDATE users SET username = ?, password = ? WHERE id = ?",
-            [newUsername, newPassword, userId],
-            (err) => {
-              if (err) {
-                console.error(err);
-                return res.redirect("/login");
-              }
-            }
-          );
-        });
-        // ユーザーネームの更新が完了した場合はセッションも更新
-        req.session.username = newUsername;
-        // 関連するチームテーブルの更新も追加する。
-        // 更新成功した場合はプロフィールページにリダイレクト
-        return res.redirect("/profile");
-      } else {
-        if (login_error) {
-          req.session.login_error = true;
-          return res.redirect("/profile");
-        } else {
-          req.session.destroy((err) => {
-            if (err) {
-              console.error(err);
-            }
-            return res.redirect("/login");
-          });
-        }
-      }
-    });
-  } else {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-      }
-      return res.redirect("/login");
-    });
-  }
-});
-
-app.get("/internal_error", (req, res) => {
-  return res.render("error.ejs", { code: "500" });
-});
-
-app.get("*", (req, res) => {
-  return res.render("error.ejs", { code: "404" });
-});
+app.use("*", notfoundRouter); ///404用、必ず一番最後に記述
 
 server.listen(3000, "0.0.0.0", () =>
   console.log("Server is running \n port: http://localhost:3000/")
