@@ -75,6 +75,7 @@ router.post("/", (req, res) => {
       "authorization"
     );
     ///room_numberテーブル(部屋一覧db)に、4桁の番号、識別暗号、permission(permissionとは0,1,2のいずれかの数で、部屋のステータスを表す。0のときは出来立ての部屋、1はゲーム中の部屋、2はゲーム終了後の部屋の意味である)を保存。
+    ///ここではpermissionには0を入れる
     db.all("select number from room_number", function (err, row) {
       if (err) {
         console.error(err.message);
