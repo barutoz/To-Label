@@ -535,6 +535,7 @@ io.on("connection", (socket) => {
   });
 });
 
+///ここに、ルーティングを書いていく。app.use(パス,ファイル先(最初のところで宣言したrequireのやつ))
 app.use("/", introductionRouter);
 app.use("/home", homeRouter);
 app.use("/internal_error", internal_errorRouter);

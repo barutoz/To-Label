@@ -2,6 +2,7 @@ const express = require("express");
 const sqlite3 = require("sqlite3");
 const router = express.Router();
 
+///ここのページは、ユーザー名とパスワード書き換えページ
 router.get("/", (req, res) => {
   // セッションにログインの状態を確認
   if (req.session.userId && req.session.username) {
@@ -32,15 +33,18 @@ router.post("/", (req, res) => {
   const oldUserpass = req.body.olduserpass;
   const newUsername = req.body.username;
   const newPassword = req.body.password;
+  ///session上でログインされているか確認
   if (req.session.userId && req.session.username) {
+    ///データベースにアクセス
     let db = new sqlite3.Database("DV.sqlite3");
+    ///usersテーブルから、userの一覧を取得
     db.all("SELECT * FROM users", function (err, row) {
       if (err) {
         console.error(err.message);
         db.close();
         return res.render("error.ejs", { code: "500" });
       }
-      db.close();
+      db.close(); ///かならず閉める
       for (let i = 0; i < row.length; i++) {
         if (row[i]["id"] == req.session.userId) {
           if (row[i]["password"] == oldUserpass) {
