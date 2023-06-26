@@ -51,14 +51,21 @@ app.set("view engine", "ejs");
 io.on("connection", (socket) => {
   ///フロント側とバック側でsocketioの接続が始まったことを意味する
   console.log("a user connected");
+
+  ///クライアントがlobbyに入ったら、クライアント側から、通知を受け取る。
   socket.on("team-join", () => {
+    ///クライアントのセッションに入っている、部屋の識別暗号を入手。
     var authorization = socket.request.session.authorization;
+    ///クライアント側のsessionのステータスを0(lobby)に設定
     socket.request.session.status = 0;
     if (authorization) {
+      ///timeリストに、部屋の識別番号が記録されているか確認していく。
       socket.request.session.entry = true;
       for (let i = 0; i < time.length; i++) {
         if (time[i][0] == authorization) {
+          ///timeリストに部屋の識別暗号が記録されていたら、制限時間を入手する。
           var time_new = time[i][1];
+          ///timeリストで、lobby終了後の3秒タイマーが起動していたら、3秒タイマーをクリアする。
           if (time[i][2]) {
             time[i][2] = false;
             clearTimeout(time[i][3]);
@@ -69,10 +76,14 @@ io.on("connection", (socket) => {
           var status = false;
         }
       }
+      ///もし、timeリストに部屋の識別暗号が記録されていなければ、
       if (!time_new) {
+        ///新しくtimeリストに部屋の識別暗号と、デフォルトの制限時間5分を追加する。
         time_new = 5;
         time[time.length] = [authorization, time_new, false];
       }
+      ///socketioのroom機能を使って、部屋の識別暗号の名前を付した部屋に入室させる。
+      ///さらに、他のユーザーに、入室したユーザーの情報を教える。
       if (!status) {
         socket.join(socket.request.session.authorization);
         io.to(socket.request.session.authorization).emit("join-join", [
@@ -93,15 +104,20 @@ io.on("connection", (socket) => {
     }
   });
 
+  ///lobby画面で、準備中または準備OKボタンを押したときの処理
   socket.on("prepare", (msg) => {
     ///修正が必要そう(if(complete)時の処理)
     var error;
     if (socket.request.session.authorization) {
       if (socket.request.session.status == 0) {
+        ///チームの識別暗号
         var authorization = socket.request.session.authorization;
+        ///ユーザーの識別暗号
         var user_authorization = socket.request.session.user_authorization;
         for (let i = 0; i < time.length; i++) {
+          ///timeリストに部屋の識別暗号が記録されていたら、
           if (time[i][0] == authorization) {
+            ///timeリストに3秒タイマーが起動していたら、3秒タイマーをクリアする。
             if (time[i][2]) {
               time[i][2] = false;
               clearTimeout(time[i][3]);
@@ -109,8 +125,11 @@ io.on("connection", (socket) => {
             }
           }
         }
+        ///msg==trueつまり、ユーザーが準備できたら、
         if (msg == true) {
+          ///dbに接続して、
           let db = new sqlite3.Database("DV.sqlite3");
+          ///部屋の識別暗号_userslistテーブルのこのアクセスしてきた人の、permissionを1(つまり、準備できたってこと)にする。
           db.serialize(() => {
             db.run(
               "UPDATE " +
@@ -126,6 +145,7 @@ io.on("connection", (socket) => {
                 }
               }
             );
+            ///他の全てのユーザーのpermissionが1になっているか確認。
             if (!error) {
               db.all(
                 "SELECT permission FROM " + authorization + "_userslist",
@@ -147,12 +167,15 @@ io.on("connection", (socket) => {
                     if (row.length < 2) {
                       var complete = false;
                     }
+                    ///他の全てのユーザーのpermissionが1になっていて、かつユーザーの人数が2以上いるなら、(全員準備が整ったら、)
                     if (complete) {
                       var content = [user_authorization, true, true];
                       for (let i = 0; i < time.length; i++) {
+                        ///timeリストの部屋の識別暗号のところに、3秒のタイマーをセットする。
                         if (time[i][0] == authorization) {
                           time[i][2] = true;
                           time[i][3] = setTimeout(function () {
+                            ///3秒経過したら(特に3秒の間に、他のユーザーが部屋から離脱する、準備状況を変更するなどなければ)、room_numberテーブルの部屋の状況(permission=1)をゲーム中に切り替える。制限時間を登録する。
                             db = new sqlite3.Database("DV.sqlite3");
                             db.serialize(() => {
                               db.run(
@@ -172,8 +195,8 @@ io.on("connection", (socket) => {
                                 }
                               );
                               if (!error) {
-                                db.close();
-                                io.to(authorization).emit("next-before", true);
+                                db.close(); ///dbは必ず閉める
+                                io.to(authorization).emit("next-before", true); ///部屋のユーザーに、3秒経過して、ページを遷移することを通知する。
                               }
                             });
                           }, 3000);
@@ -181,6 +204,7 @@ io.on("connection", (socket) => {
                         }
                       }
                       io.to(authorization).emit("prepre", content);
+                      ///他のユーザーが準備がまだできていなかったら、とりあえず、この人は準備できたことを他のユーザーに知らせる。
                     } else {
                       var content = [user_authorization, true, false];
                       io.to(authorization).emit("prepre", content);
@@ -190,8 +214,10 @@ io.on("connection", (socket) => {
               );
             }
           });
+          ///ユーザーから準備が整っていないと、通知が来たら、
         } else {
           let db = new sqlite3.Database("DV.sqlite3");
+          ///部屋の識別暗号_userslistのこの人のpermission=0(まだ準備中)にする。
           db.serialize(() => {
             db.run(
               "UPDATE " +
@@ -207,6 +233,7 @@ io.on("connection", (socket) => {
                 }
               }
             );
+            ///他のユーザーにまだ準備が整ってないことを知らせる。
             if (!error) {
               db.close();
               var content = [user_authorization, false, false];
@@ -218,30 +245,35 @@ io.on("connection", (socket) => {
     }
   });
 
+  ///制限時間を変更したら、
   socket.on("time", (msg) => {
     if (socket.request.session.authorization) {
       if (socket.request.session.status == 0) {
         if (typeof msg == "number") {
           var authorization = socket.request.session.authorization;
+          ///timeリストの部屋の識別暗号のところの制限時間を変更する。
           for (let i = 0; i < time.length; i++) {
             if (time[i][0] == authorization) {
               time[i][1] = msg;
               break;
             }
           }
+          ///他のユーザーに新しく変更した時間を通知する。
           io.to(authorization).emit("time_update", msg);
         }
       }
     }
   });
 
+  ///3秒経過して、ゲームをスタートさせる前に、クライアント側から、クライアントの情報について通知をもらう。
   socket.on("next-after", () => {
     var error;
     if (socket.request.session.authorization) {
       var authorization = socket.request.session.authorization;
       if (socket.request.session.status == 0) {
         socket.request.session.entry = false;
-        socket.emit("next", true);
+        ///ページを遷移するように、クライアントに指示する。
+        io.to(socket.request.session.authorization).emit("next", true);
         let exist;
         let ix;
         for (let i = 0; i < time.length; i++) {
@@ -254,6 +286,7 @@ io.on("connection", (socket) => {
           }
         }
         console.log(ix);
+        ///ゲームの制限時間をスタートする。
         if (exist) {
           console.log("er");
           if (typeof time[ix][4] == "undefined") {
@@ -261,10 +294,13 @@ io.on("connection", (socket) => {
             clearTimeout(time[ix][3]);
             let limit = time[ix][1] * 60;
             time[ix][4] = setInterval(function () {
-              limit = limit - 10;
+              ///timeリストにタイマー(10秒おきに定期実行タイマー)をセットする。
+              limit = limit - 10; ///残り時間
+              ///時間がoverしたとき
               if (limit == 0) {
                 db = new sqlite3.Database("DV.sqlite3");
                 db.serialize(() => {
+                  ///room_numberテーブルのpermission=2(ゲーム終了)にする。
                   db.run(
                     "UPDATE room_number SET permission=2, time=0 WHERE authorization='" +
                       authorization +
@@ -281,12 +317,15 @@ io.on("connection", (socket) => {
                     io.to(authorization).emit("error");
                     clearInterval(time[ix][4]);
                   } else {
+                    ///部屋の参加者に、結果画面に遷移するように指示する。
                     io.to(authorization).emit("finish");
                     clearInterval(time[ix][4]);
                   }
                 });
+                ///10秒おきに実行
               } else {
                 db = new sqlite3.Database("DV.sqlite3");
+                ///room_numberテーブルの残り時間を10秒ずつ短くする。
                 db.serialize(() => {
                   db.run(
                     "UPDATE room_number SET permission=1, time=" +
@@ -303,13 +342,14 @@ io.on("connection", (socket) => {
                   db.close();
                 });
               }
-            }, 10000);
+            }, 10000); ///10秒おきに、処理を行う。
           }
         }
       }
     }
   });
 
+  ///ゲームが始まったら、クライアントのセッションのstatusをゲーム中に更新する。
   socket.on("room-join", () => {
     var authorization = socket.request.session.authorization;
     if (authorization) {
@@ -318,6 +358,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  ///ゲーム中クライアントがレッテルを送ったら、
   socket.on("msg_submit", (msg) => {
     var error;
     var authorization = socket.request.session.authorization;
@@ -325,6 +366,7 @@ io.on("connection", (socket) => {
       if (socket.request.session.status == 1) {
         if (msg.length == 2) {
           let db = new sqlite3.Database("DV.sqlite3");
+          ///部屋の識別暗号_userslistから、宛先のuserの識別暗号のusernameを取得する。
           db.all(
             "select * from " + authorization + "_userslist",
             function (err, row) {
@@ -340,12 +382,15 @@ io.on("connection", (socket) => {
                     break;
                   }
                 }
+                ///貼ったレッテルのmsgごとの、識別暗号を生成する
                 db = new sqlite3.Database("DV.sqlite3");
+                ///外部の関数を使用する。
                 var control = authorization_js.create_authorization(
                   authorization,
                   db,
                   "control"
                 );
+                ///部屋の識別暗号のテーブルに、この人のuser識別暗号、宛名のuser識別暗号、この人のuseername、宛名のusername、レッテル、レッテル識別暗号を記録する。
                 db.serialize(() => {
                   db.run(
                     "INSERT INTO " +
@@ -366,9 +411,10 @@ io.on("connection", (socket) => {
                       }
                     }
                   );
-                  db.close();
+                  db.close(); ///dbはこまめに閉める。
                 });
                 if (!error) {
+                  ///レッテルは他の人にも送信
                   io.to(authorization).emit("receive_msg", [
                     socket.request.session.user_authorization,
                     msg[0],
@@ -386,6 +432,7 @@ io.on("connection", (socket) => {
     }
   });
 
+  ///レッテルを編集したときの処理
   socket.on("edit_msg", (msg) => {
     var error;
     var authorization = socket.request.session.authorization;
@@ -393,13 +440,15 @@ io.on("connection", (socket) => {
       if (socket.request.session.status == 1) {
         if (msg.length == 2) {
           let db = new sqlite3.Database("DV.sqlite3");
+          ///部屋の識別暗号のテーブルを取得する。
           db.all("select * from " + authorization, function (err, row) {
             let exist;
             if (err) {
               console.log(err.message);
               db.close();
             } else {
-              db.close();
+              db.close(); ///dbはこまめに必ず閉める。
+              ///編集するレッテルと同じ識別暗号の、レッテルをテーブルから探してくる。
               for (let i = 0; i < row.length; i++) {
                 if (row[i]["control"] == msg[1]) {
                   exist = true;
@@ -411,6 +460,7 @@ io.on("connection", (socket) => {
                 }
               }
               if (exist) {
+                ///部屋の識別暗号テーブルのmsgを書き換える。
                 db = new sqlite3.Database("DV.sqlite3");
                 db.serialize(() => {
                   db.run(
@@ -428,9 +478,10 @@ io.on("connection", (socket) => {
                       }
                     }
                   );
-                  db.close();
+                  db.close(); ///dbは必ずこまめに閉める。
                 });
                 if (!error) {
+                  ///処理が終わったら、部屋の他のユーザーに、編集したことを通知する。
                   io.to(authorization).emit("receive_editmsg", [
                     to,
                     from,
@@ -446,19 +497,23 @@ io.on("connection", (socket) => {
     }
   });
 
+  ///レッテルを削除したときの処理
   socket.on("delete_msg", (msg) => {
     var error;
     var authorization = socket.request.session.authorization;
     if (authorization) {
       if (socket.request.session.status == 1) {
         let db = new sqlite3.Database("DV.sqlite3");
+        ///まずは、部屋の識別暗号テーブルから、レッテル一覧を取得
         db.all("select * from " + authorization, function (err, row) {
           let exist;
           if (err) {
             console.log(err.message);
             db.close();
           } else {
+            db.close(); ///必ずこまめに閉める。
             for (let i = 0; i < row.length; i++) {
+              ///レッテル一覧に、消されたレッテルと同じ識別暗号のレッテルが存在するかチェック。
               if (row[i]["control"] == msg) {
                 exist = true;
                 var to = row[i]["player2"];
@@ -470,6 +525,7 @@ io.on("connection", (socket) => {
             }
             if (exist) {
               db = new sqlite3.Database("DV.sqlite3");
+              ///レッテルを削除
               db.serialize(() => {
                 db.run(
                   "DELETE FROM " +
@@ -484,9 +540,10 @@ io.on("connection", (socket) => {
                     }
                   }
                 );
-                db.close();
+                db.close(); ///必ず閉める。こまめに閉める。
               });
               if (!error) {
+                ///レッテルが削除されたことを他のユーザーに知らせる。
                 io.to(authorization).emit("receive_deletemsg", [to, from, msg]);
               }
             }
@@ -496,13 +553,16 @@ io.on("connection", (socket) => {
     }
   });
 
+  ///クライアントがsocket.ioから接続が切れた時の処理
   socket.on("disconnect", () => {
     var authorization = socket.request.session.authorization;
     var user_authorization = socket.request.session.user_authorization;
     if (authorization) {
+      ///sessionに記載のstatusが0つまり、lobbyから接続が切れた場合
       if (socket.request.session.status == 0) {
         for (let i = 0; i < time.length; i++) {
           if (time[i][0] == authorization) {
+            ///3秒タイマーが動いている場合は停止
             if (time[i][2]) {
               time[i][2] = false;
               clearTimeout(time[i][3]);
@@ -510,9 +570,11 @@ io.on("connection", (socket) => {
             }
           }
         }
+        ///lobbyから接続が切れた場合(通常)
         if (socket.request.session.entry) {
           let db = new sqlite3.Database("DV.sqlite3");
           db.serialize(() => {
+            ///部屋の識別番号_userslistテーブルから名前を抹消
             db.run(
               "DELETE FROM " +
                 authorization +
@@ -525,11 +587,14 @@ io.on("connection", (socket) => {
                 }
               }
             );
-            db.close();
+            db.close(); ///こまめに閉める。
           });
         }
+        ///lobbyから接続が切れた場合で(3秒タイマーが経過後でメンバーが確定し、次の画面遷移に映るような場面)では、先ほどの抹消処理はしない
+        ///lobbyから抜けたことを他のユーザーに伝達。
         io.to(authorization).emit("leave", user_authorization);
       }
+      ///sessionに記載のステータスが0以外つまり、ゲーム中の時は、何も処理しない。
       console.log("user disconnected");
     }
   });
