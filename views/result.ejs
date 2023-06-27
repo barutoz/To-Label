@@ -56,6 +56,19 @@
           <% }) %>
         </div>
       </div>
+      <% other_msg_list.forEach(element=>{%>
+      <div class="card">
+        <div class="card-header"><%= element[0] %></div>
+        <div class="card-body">
+          <% element[1].forEach(child=>{%>
+          <div class="card">
+            <div class="card-header"><%= child.from_username %></div>
+            <div class="card-body"><%= child.msg %></div>
+          </div>
+          <%})%>
+        </div>
+      </div>
+      <%})%>
     </main>
   </body>
 </html>

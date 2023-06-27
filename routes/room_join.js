@@ -170,10 +170,10 @@ router.get("/", (req, res) => {
                 } else {
                   other_users_user = row[i]["user"];
                   other_users_authorization = row[i]["authorization"];
-                  other_users[i] = {
+                  other_users.push({
                     user: other_users_user,
                     authorization: other_users_authorization,
-                  };
+                  });
                 }
               }
               ///この人が参加者一覧になければ、
@@ -236,10 +236,27 @@ router.get("/", (req, res) => {
                           ///your_msg_listにそのやりとりを入れる
                           your_msg_list.push(msg_list[i]);
                         }
+                      }
+                      for (let x = 0; x < other_users.length; x++) {
+                        let msg_for_particular_player = [];
+                        for (let i = 0; i < msg_list.length; i++) {
+                          if (
+                            msg_list[i]["player2"] ==
+                            other_users[x]["authorization"]
+                          ) {
+                            msg_for_particular_player.push(msg_list[i]);
+                          }
+                        }
+                        other_msg_list.push([
+                          other_users[x]["user"],
+                          msg_for_particular_player,
+                        ]);
                       } ///ゲームの結果画面に、your_msg_listとこの人のusernameを埋め込んで送る。
                       return res.render("result.ejs", {
                         your_msg_list: your_msg_list,
                         username: req.session.username,
+                        other_msg_list: other_msg_list,
+                        other_users: other_users,
                       });
                     }
                   }
