@@ -237,6 +237,7 @@ router.get("/", (req, res) => {
                           your_msg_list.push(msg_list[i]);
                         }
                       }
+                      ///他の人へのレッテルをかき集めてくる。
                       for (let x = 0; x < other_users.length; x++) {
                         let msg_for_particular_player = [];
                         for (let i = 0; i < msg_list.length; i++) {
