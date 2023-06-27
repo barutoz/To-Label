@@ -1,3 +1,5 @@
+///ただただ、ランダムな12桁の文字列を生み出す関数
+///exports.を頭につけてやると外部ファイルから呼び出せる。
 exports.createPassword = function () {
   var alphabet = "abcdefghijklmnopqrstuvwxyz";
   var alphabetUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
