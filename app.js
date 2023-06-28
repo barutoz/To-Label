@@ -9,6 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const io = require("socket.io")(server);
 const session = require("express-session");
+const cron = require("node-cron"); ///定期実行するための、モジュール
 
 ///処理を飛ばす先のファイル(/routes以下)
 const introductionRouter = require("./routes/introduction");
@@ -20,6 +21,7 @@ const signupRouter = require("./routes/signup");
 const homeRouter = require("./routes/home");
 const logoutRouter = require("./routes/logout");
 const profileRouter = require("./routes/profile");
+const historyRouter = require("./routes/history");
 const internal_errorRouter = require("./routes/internal_error");
 const notfoundRouter = require("./routes/notfound");
 
@@ -46,6 +48,64 @@ let time = []; ///sqliteのデータベースに入れるほど、長期間保�
 app.use(express.urlencoded({ extended: true })); ///おまじない
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+
+///毎日4時に実行
+cron.schedule("0 0 4 * * *", function () {
+  var date = Date.now(); ///現在時刻を取得
+  console.log(date);
+  var delete_date = date - 86400000; ///1日前の時刻を計算
+  let db = new sqlite3.Database("DV.sqlite3");
+  db.all("SELECT * FROM room_number", function (err, row) {
+    if (err) {
+      console.log(err.message);
+    } else {
+      for (let i = 0; i < row.length; i++) {
+        ///もし、部屋の作成時間またはゲームの終了時間が、24時間前なら、
+        if (row[i]["finish_time"] <= delete_date) {
+          ///さらに、ゲーム中でなかったら、
+          if (row[i]["permission"] !== 1) {
+            db.serialize(() => {
+              ///部屋の識別暗号テーブルを削除
+              db.run("DROP TABLE " + row[i]["authorization"], (err) => {
+                if (err) {
+                  console.log(err.message);
+                }
+              });
+              ///部屋の識別暗号_userslistを削除
+              db.run(
+                "DROP TABLE " + row[i]["authorization"] + "_userslist",
+                (err) => {
+                  if (err) {
+                    console.log(err.message);
+                  }
+                }
+              );
+              ///room_numberテーブルから、部屋を削除
+              db.run(
+                "DELETE FROM room_number WHERE authorization='" +
+                  row[i]["authorization"] +
+                  "'",
+                (err) => {
+                  if (err) {
+                    console.log(err.message);
+                  }
+                }
+              );
+              ///timeリストから、削除
+              for (let x = 0; x < time.length; x++) {
+                if (time[x][0] == row[i]["authorization"]) {
+                  time.splice(x, 1);
+                  break;
+                }
+              }
+            });
+          }
+        }
+      }
+    }
+  });
+  db.close();
+});
 
 ///以下socketioの処理
 io.on("connection", (socket) => {
@@ -298,11 +358,15 @@ io.on("connection", (socket) => {
               limit = limit - 10; ///残り時間
               ///時間がoverしたとき
               if (limit == 0) {
+                ///ゲーム終了後1日経ったら、部屋の削除を行うために、ゲームの終了時刻を取得して、room_numberテーブルに保存しておく。
+                var date = Date.now(); ///現在時刻を取得
                 db = new sqlite3.Database("DV.sqlite3");
                 db.serialize(() => {
                   ///room_numberテーブルのpermission=2(ゲーム終了)にする。
                   db.run(
-                    "UPDATE room_number SET permission=2, time=0 WHERE authorization='" +
+                    "UPDATE room_number SET permission=2, time=0, finish_time=" +
+                      date +
+                      " WHERE authorization='" +
                       authorization +
                       "'",
                     (err) => {
@@ -312,15 +376,53 @@ io.on("connection", (socket) => {
                       }
                     }
                   );
-                  db.close();
-                  if (error) {
-                    io.to(authorization).emit("error");
-                    clearInterval(time[ix][4]);
-                  } else {
-                    ///部屋の参加者に、結果画面に遷移するように指示する。
-                    io.to(authorization).emit("finish");
-                    clearInterval(time[ix][4]);
-                  }
+                  ///部屋の識別暗号テーブルから、レッテルのやり取りをすべて取得して、取得したやり取りをprofile_msgテーブルに転記
+                  db.all("SELECT * FROM " + authorization, function (err, row) {
+                    if (err) {
+                      console.log(err.message);
+                    } else {
+                      db.all(
+                        "SELECT * FROM room_number WHERE authorization='" +
+                          authorization +
+                          "'",
+                        function (err, row2) {
+                          if (err) {
+                            console.log(err.message);
+                          } else {
+                            console.log(row);
+                            var room_number = row2[0]["number"];
+                            for (let i = 0; i < row.length; i++) {
+                              ///部屋番号とゲームの終了時間、差出人のusername、レッテルの中身、宛名ユーザーの識別暗号を保存
+                              db.run(
+                                "INSERT INTO profile_msg (from_username,msg,to_user_authorization,time,room_number) VALUES(?,?,?,?,?)",
+                                [
+                                  row[i]["from_username"],
+                                  row[i]["msg"],
+                                  row[i]["player2"],
+                                  date,
+                                  room_number,
+                                ],
+                                (err) => {
+                                  if (err) {
+                                    console.error(err.message);
+                                  }
+                                }
+                              );
+                            }
+                          }
+                        }
+                      );
+                    }
+                    db.close();
+                    if (error) {
+                      io.to(authorization).emit("error");
+                      clearInterval(time[ix][4]);
+                    } else {
+                      ///部屋の参加者に、結果画面に遷移するように指示する。
+                      io.to(authorization).emit("finish");
+                      clearInterval(time[ix][4]);
+                    }
+                  });
                 });
                 ///10秒おきに実行
               } else {
@@ -611,6 +713,7 @@ app.use("/random", randomRouter);
 app.use("/room", roomRouter);
 app.use("/room/*", room_joinRouter);
 app.use("/signup", signupRouter);
+app.use("/history", historyRouter);
 
 app.use("*", notfoundRouter); ///404用、必ず一番最後に記述
 

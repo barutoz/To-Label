@@ -13,7 +13,7 @@ const authorization_js = require("../function/authorization");
 ///この関数では、かぶりがある場合はfalseを返す。適正な数字の場合はtrue
 function number_check(number, db) {
   ///しかしこの生成方法では、math.randomで0.000099...以下が出力されると、値が0になり、0000となる。0000はあまりよろしくないので、はじいている。
-  if ((number = 0)) {
+  if (number == 0) {
     return false;
     ///値が0でない場合、dbに重複がないか確認を取る
   } else {
@@ -82,16 +82,17 @@ router.post("/", (req, res) => {
         db.close();
         return res.render("error.ejs", { code: "500" });
       }
-      var rowrow = row.length + 1;
+
+      var date = Date.now(); ///テーブル削除をするときのために、ルーム生成時間も保存しておく。
       db.serialize(() => {
         db.run(
-          "INSERT INTO room_number (id,number,authorization,permission) VALUES(" +
-            String(rowrow) +
-            "," +
+          "INSERT INTO room_number (number,authorization,permission,finish_time) VALUES(" +
             String(number) +
             ',"' +
             authorization +
-            '",0)',
+            '",0,' +
+            date +
+            ")",
           (err) => {
             if (err) {
               console.error(err.message);
