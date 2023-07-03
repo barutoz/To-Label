@@ -56,6 +56,22 @@
           <% }) %>
         </div>
       </div>
+      <% other_msg_list.forEach(element=>{%>
+      <div class="card mt-4">
+        <div class="card-header"><%= element[0] %></div>
+        <div class="card-body">
+          <% element[1].forEach(child=>{%>
+          <div class="card">
+            <div class="card-header"><%= child.from_username %></div>
+            <div class="card-body"><%= child.msg %></div>
+          </div>
+          <%})%>
+        </div>
+      </div>
+      <p>
+        この部屋は、1日経つと削除されて、アクセスできなくなります。明日以降は、ユーザーのプロフィールページより閲覧ください。
+      </p>
+      <%})%>
     </main>
   </body>
 </html>

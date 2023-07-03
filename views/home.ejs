@@ -95,14 +95,26 @@
             <div class="card-section">
               <img src="user-icon.png" alt="User Icon" width="50" height="50" />
             </div>
+
             <div class="card-section">
               <p>過去のレッテル</p>
-              <h3>世紀の〇〇</h3>
+              <% if(exists){%>
+              <h3><%= your_msg[0]["msg"] %></h3>
+              <% if(your_msg.length>=2){%>
               <p>他にも</p>
-              <p>〇〇、〇〇、〇〇</p>
+              <p>
+                <% for(let i=0; i<your_msg.length; i++){%> <%=
+                your_msg[i]["msg"] %>、<%}%>
+              </p>
+              <%}%> <%}else{%>
+              <h3>あなたにはレッテルがありません。</h3>
+              <h3>ゲームを始めてみましょう!</h3>
+              <%}%>
             </div>
             <div class="card-section d-flex align-items-end">
-              <button class="btn btn-primary">さらに見る</button>
+              <a href="/history"
+                ><button class="btn btn-primary">さらに見る</button></a
+              >
             </div>
           </div>
         </div>
