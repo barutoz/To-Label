@@ -77,6 +77,62 @@
         </div>
       </div>
     </nav>
-    <main></main>
+    <main>
+      <section>
+        <h1>ゲームの遊び方</h1>
+        <p>ゲームのルールや操作方法などの説明をここに記述します。</p>
+      </section>
+
+      <section>
+        <h1>よくある質問</h1>
+        <div class="accordion" id="faqAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="question1">
+              <button
+                class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#answer1"
+                aria-expanded="true"
+                aria-controls="answer1"
+              >
+                質問1
+              </button>
+            </h2>
+            <div
+              id="answer1"
+              class="accordion-collapse collapse show"
+              aria-labelledby="question1"
+              data-bs-parent="#faqAccordion"
+            >
+              <div class="accordion-body">解答1</div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="question2">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#answer2"
+                aria-expanded="false"
+                aria-controls="answer2"
+              >
+                質問2
+              </button>
+            </h2>
+            <div
+              id="answer2"
+              class="accordion-collapse collapse"
+              aria-labelledby="question2"
+              data-bs-parent="#faqAccordion"
+            >
+              <div class="accordion-body">解答2</div>
+            </div>
+          </div>
+          <!-- 追加の質問と解答をここに追加 -->
+        </div>
+      </section>
+    </main>
   </body>
 </html>
