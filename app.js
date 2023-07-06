@@ -798,7 +798,7 @@ app.use("/home", homeRouter);
 app.use("/internal_error", internal_errorRouter);
 app.use("/login", loginRouter);
 app.use("/logout", logoutRouter);
-app.use("/profile", profileRouter);
+app.use("/setting", profileRouter);
 app.use("/help", helpRouter);
 app.use("/random", randomRouter);
 app.use("/room", roomRouter);

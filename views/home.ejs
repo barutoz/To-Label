@@ -76,7 +76,6 @@
                 class="dropdown-menu dropdown-menu-end"
                 aria-labelledby="navbarDropdown"
               >
-                <li><a class="dropdown-item" href="/profile">Profile</a></li>
                 <li><a class="dropdown-item" href="/history">History</a></li>
                 <li><a class="dropdown-item" href="/setting">Setting</a></li>
                 <li><a class="dropdown-item" href="/help">Help</a></li>
@@ -94,9 +93,7 @@
         <div class="card">
           <div class="card-body d-flex justify-content-between">
             <div class="card-section">
-              <img src="user-icon.png" alt="User Icon" width="50" height="50" />
             </div>
-
             <div class="card-section">
               <p>過去のレッテル</p>
               <% if(exists){%>
@@ -107,7 +104,7 @@
                 <% for(let i=0; i<your_msg.length; i++){%> <%=
                 your_msg[i]["msg"] %>、<%}%>
               </p>
-              <%}%> <%}else{%>
+              <%}}else{%>
               <h3>あなたにはレッテルがありません。</h3>
               <h3>ゲームを始めてみましょう!</h3>
               <%}%>
