@@ -1,5 +1,6 @@
 const express = require("express");
 const sqlite3 = require("sqlite3");
+const bcrypt = require("bcrypt");
 const router = express.Router();
 
 ///ここのページは、ユーザー名とパスワード書き換えページ
@@ -52,7 +53,7 @@ router.post("/", (req, res) => {
         ///データベース上に一致するuser識別番号があるか確認
         if (row[i]["id"] == req.session.userId) {
           ///かつ入力させた古いpswdと一致しているか確認
-          if (row[i]["password"] == oldUserpass) {
+          if (bcrypt.compareSync(oldUserpass, row[i]["password"])) {
             var login = true;
             break;
           } else {
@@ -69,7 +70,7 @@ router.post("/", (req, res) => {
         // その前に、同じユーザ名・パスワードがいる場合を防止する。(同じユーザー名はOK)
         for (let i = 0; i < row.length; i++) {
           if (row[i]["username"] == newUsername) {
-            if (row[i]["password"] == newPassword) {
+            if (bcrypt.compareSync(newPassword, row[i]["password"])) {
               var pswd_error = true;
               break;
             }
@@ -78,8 +79,9 @@ router.post("/", (req, res) => {
         ///同じユーザー名かつpswdがいる場合は、pswdを別のものにするよう、表示させる。#1
         if (pswd_error) {
           req.session.pswd_error = true;
-          return res.redirect("/profile");
+          return res.redirect("/setting");
         }
+        let hashed_password = bcrypt.hashSync(newPassword, 10);
         ///すべての条件を満たしている場合、書き換え処理を行う。まずdbにアクセス
         db = new sqlite3.Database("DV.sqlite3");
         ///db.serializeとはjsの非同期実行をこのネスト下ではやめて、上から順に実行するために書く。特にdb処理では実行の順番が前後するため、必ず書くことが推奨される。
@@ -87,7 +89,7 @@ router.post("/", (req, res) => {
           ///usersテーブルを書き換え
           db.run(
             "UPDATE users SET username = ?, password = ? WHERE id = ?",
-            [newUsername, newPassword, userId],
+            [newUsername, hashed_password, userId],
             (err) => {
               if (err) {
                 console.error(err);
@@ -102,12 +104,12 @@ router.post("/", (req, res) => {
         req.session.username = newUsername;
         // 関連するチームテーブルの更新も追加する。
         // 更新成功した場合はプロフィールページにリダイレクト
-        return res.redirect("/profile");
+        return res.redirect("/setting");
         ///入力させた古いpswdに間違えがあれば、古いpswdが違うよ表示を出す(#2)
       } else {
         if (login_error) {
           req.session.login_error = true;
-          return res.redirect("/profile");
+          return res.redirect("/setting");
           ///user用識別番号も違う場合(おそらく不正アクセスの場合)はsessionをさようならして、loginへリダイレクト
         } else {
           req.session.destroy((err) => {

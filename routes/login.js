@@ -1,4 +1,5 @@
 const express = require("express"); ///おまじない
+const bcrypt = require("bcrypt");
 const router = express.Router(); ///おまじない
 const sqlite3 = require("sqlite3"); ///loginされたときに、データベースを参照する必要があるため、sqlite3のモジュールをインポート
 
@@ -32,7 +33,7 @@ router.post("/", (req, res) => {
       for (let i = 0; i < row.length; i++) {
         ///送られてきたユーザー・pswdがデータベースに一致しているか確認していく。
         if (req.body.username == row[i]["username"]) {
-          if (req.body.password == row[i]["password"]) {
+          if (bcrypt.compareSync(req.body.password, row[i]["password"])) {
             ///ユーザーとpswdが一致していたら、user用識別番号idとauthorizationをもらう。
             var login_id = row[i]["id"];
             var authorization = row[i]["authorization"];
