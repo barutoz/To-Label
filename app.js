@@ -310,13 +310,10 @@ io.on("connection", (socket) => {
                             db = new sqlite3.Database("DV.sqlite3");
                             db.serialize(() => {
                               db.run(
-                                "UPDATE room_number SET permission=1, time=" +
-                                  time[i][1] * 60 +
-                                  ", original_time=" +
-                                  time[i][1] * 60 +
-                                  " WHERE authorization='" +
+                                "UPDATE room_number SET permission=1, time=?, original_time=? WHERE authorization='" +
                                   authorization +
                                   "'",
+                                [time[i][1] * 60, time[i][1] * 60],
                                 (err) => {
                                   if (err) {
                                     console.log(err.message);
@@ -692,11 +689,8 @@ io.on("connection", (socket) => {
                       db.run(
                         "UPDATE " +
                           authorization +
-                          " SET msg='" +
-                          msg[0] +
-                          "' WHERE control='" +
-                          msg[1] +
-                          "'",
+                          " SET msg=? WHERE control=?",
+                        [msg[0], msg[1]],
                         (err) => {
                           if (err) {
                             console.error(err.message);
@@ -756,11 +750,8 @@ io.on("connection", (socket) => {
               ///レッテルを削除
               db.serialize(() => {
                 db.run(
-                  "DELETE FROM " +
-                    authorization +
-                    " WHERE control='" +
-                    msg +
-                    "'",
+                  "DELETE FROM " + authorization + " WHERE control=?",
+                  [msg],
                   (err) => {
                     if (err) {
                       console.error(err.message);
