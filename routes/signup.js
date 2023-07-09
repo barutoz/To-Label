@@ -22,6 +22,7 @@ router.post("/", (req, res) => {
   const session_csrfToken = req.session.signup;
   ///フォームから受け取ってきたcsrfトークンとsessionのcsrfトークンが一致しているか確認
   if (received_csrfToken == session_csrfToken) {
+    ///登録したいパスワードをハッシュ化
     let hashed_password = bcrypt.hashSync(password, 10);
     let db = new sqlite3.Database("DV.sqlite3");
     // 既存のユーザーネームとの重複をチェック
@@ -35,6 +36,7 @@ router.post("/", (req, res) => {
         for (let i = 0; i < row.length; i++) {
           // ユーザーネーム・パスワードが両方とも同じものがある場合は同じusernameとpswdは認められない。
           if (row[i]["username"] == username) {
+            ///下のコードの意味:平文の登録したいpasswordとデータベース上のハッシュ値パスワードを比較
             if (bcrypt.compareSync(password, row[i]["password"]) == true) {
               var pswd_error = true;
               break;
