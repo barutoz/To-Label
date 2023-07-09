@@ -279,6 +279,7 @@
     </div>
     <input type="text" id="address_pop" hidden />
     <input type="text" id="msg_pop" hidden />
+    <input type="number" id="number_pop" hidden />
     <script>
       const socket = io();
       let content;
@@ -346,6 +347,7 @@
             );
             $("#msg_pop").val($("#message").val());
             $("#address_pop").val($("#address").val());
+            $("#number_pop").val(0);
             socket.emit("msg_submit", content);
             $("#message").val("");
           }
@@ -368,6 +370,11 @@
                 msg[5] +
                 '></div><div class="col-5 pb-0"><button type="button" class="btn btn-primary btn-sm" name="complete" style="display: none;">終了</button><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-primary btn-sm" name="edit">編集</button><button type="button" class="btn btn-secondary btn-sm" name="delete">削除</button></div></div></div></li>'
             );
+            $("#NG_pop2").text("");
+            $("#NG_pop").text("");
+            $("#msg_pop").val("");
+            $("#address_pop").val("");
+            $("#number_pop").val("");
           } else if (
             msg[0] !== self_authorization &&
             msg[1] !== self_authorization
@@ -383,10 +390,6 @@
                 msg[2] +
                 "</p></div></div>"
             );
-            $("#NG_pop2").text("");
-            $("#NG_pop").text("");
-            $("#msg_pop").val("");
-            $("#address_pop").val("");
           }
         } else {
           if (msg == true) {
@@ -402,23 +405,34 @@
       });
 
       $("#resend_msg").click(function () {
-        console.log("kinami");
         var msg = $("#msg_pop").val();
         var address = $("#address_pop").val();
-        console.log(msg, address);
+        var edit = $("#number_pop").val();
         if (msg == "") {
           $("#msg_pop").val("");
           $("#address_pop").val("");
+          $("#NG_pop").text("送信に失敗しました。");
+          $("#number_pop").val("");
         } else {
           if (address == "") {
             $("#msg_pop").val("");
             $("#address_pop").val("");
             $("#NG_pop").text("送信に失敗しました。");
+            $("#number_pop").val("");
           } else {
-            socket.emit("msg_submit", [address, msg, true]);
-            $("#msg_pop").val("");
-            $("#address_pop").val("");
-            $("#modal_recommend").modal("hide");
+            if (edit == 0) {
+              socket.emit("msg_submit", [address, msg, true]);
+              $("#msg_pop").val("");
+              $("#address_pop").val("");
+              $("#modal_recommend").modal("hide");
+              $("#number_pop").val("");
+            } else if (edit == 1) {
+              socket.emit("edit_msg", [msg, address, true]);
+              $("#msg_pop").val("");
+              $("#address_pop").val("");
+              $("#modal_recommend").modal("hide");
+              $("#number_pop").val("");
+            }
           }
         }
       });
@@ -438,7 +452,24 @@
           .parent()
           .find("input")
           .attr("name");
-        socket.emit("edit_msg", [msg, control]);
+        if (!(control == "")) {
+          if (!(msg == "")) {
+            $("#NG_pop").text(
+              "あなたの入力した言葉" +
+                msg +
+                "は下品で猥褻です。送信しないことを推奨します。"
+            );
+            $("#NG_pop2").text(
+              "あなたの入力した言葉" +
+                msg +
+                "は極度に下品で猥褻なものです。送信できません。"
+            );
+            $("#msg_pop").val(msg);
+            $("#address_pop").val(control);
+            $("#number_pop").val(1);
+            socket.emit("edit_msg", [msg, control]);
+          }
+        }
       });
 
       $(document).on("click", "button[name='delete']", function () {
@@ -489,6 +520,16 @@
                   "</p></div></div>"
               );
             }
+          }
+        } else {
+          if (msg == true) {
+            $("#NG_pop2").text("");
+            $("#modal_recommend").modal("show");
+          } else if (msg == false) {
+            $("#NG_pop").text("");
+            $("#msg_pop").val("");
+            $("#address_pop").val("");
+            $("#modal_prohibit").modal("show");
           }
         }
       });
