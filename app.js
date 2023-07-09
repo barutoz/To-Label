@@ -117,7 +117,7 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 ///毎日4時に実行
-cron.schedule("0 0 4 * * *", function () {
+cron.schedule("0 8 23 * * *", function () {
   var date = Date.now(); ///現在時刻を取得
   console.log(date);
   var delete_date = date - 86400000; ///1日前の時刻を計算
@@ -125,6 +125,7 @@ cron.schedule("0 0 4 * * *", function () {
   db.all("SELECT * FROM room_number", function (err, row) {
     if (err) {
       console.log(err.message);
+      db.close();
     } else {
       for (let i = 0; i < row.length; i++) {
         ///もし、部屋の作成時間またはゲームの終了時間が、24時間前なら、
@@ -136,6 +137,7 @@ cron.schedule("0 0 4 * * *", function () {
               db.run("DROP TABLE " + row[i]["authorization"], (err) => {
                 if (err) {
                   console.log(err.message);
+                  db.close();
                 }
               });
               ///部屋の識別暗号_userslistを削除
@@ -144,6 +146,7 @@ cron.schedule("0 0 4 * * *", function () {
                 (err) => {
                   if (err) {
                     console.log(err.message);
+                    db.close();
                   }
                 }
               );
@@ -155,6 +158,7 @@ cron.schedule("0 0 4 * * *", function () {
                 (err) => {
                   if (err) {
                     console.log(err.message);
+                    db.close();
                   }
                 }
               );
@@ -169,9 +173,9 @@ cron.schedule("0 0 4 * * *", function () {
           }
         }
       }
+      db.close();
     }
   });
-  db.close();
 });
 
 ///以下socketioの処理
