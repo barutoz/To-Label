@@ -21,6 +21,7 @@ const signupRouter = require("./routes/signup");
 const homeRouter = require("./routes/home");
 const logoutRouter = require("./routes/logout");
 const profileRouter = require("./routes/profile");
+const helpRouter = require("./routes/help");
 const historyRouter = require("./routes/history");
 const internal_errorRouter = require("./routes/internal_error");
 const notfoundRouter = require("./routes/notfound");
@@ -45,12 +46,78 @@ io.engine.use(sessionMiddleware); ///sessionをsocket.ioでも使うと宣言、
 
 let time = []; ///sqliteのデータベースに入れるほど、長期間保存しておく必要のない、socketioで使われるデータをここに格納
 
+const NGword = [
+  "fuck",
+  "FUCK",
+  "巨乳サワー",
+  "きょうにゅうさわー",
+  "オカスゾ",
+  "キョニュウサワー",
+  "ファック",
+  "ふぁっく",
+  "犯すぞ",
+  "おかすぞ",
+  "姦",
+  "まんこ",
+  "マンコ",
+  "けつあな",
+  "けつのあな",
+  "ケツアナ",
+  "ケツノアナ",
+  "けつ穴",
+  "けつの穴",
+];
+const NGpop = [
+  "うんこ",
+  "うんち",
+  "きえろ",
+  "ころす",
+  "しね",
+  "sex",
+  "SEX",
+  "殺す",
+  "消えろ",
+  "コロス",
+  "キエロ",
+  "シネ",
+  "セックス",
+  "なにをしてんの",
+  "何をしてんの",
+  "ナニヲシテンノ",
+  "unko",
+  "UNKO",
+  "UNCHI",
+  "unchi",
+  "ウンチ",
+  "みそきん",
+  "かにきん",
+  "ぐろきん",
+  "ひかまに",
+  "ひかきん",
+  "ミソキン",
+  "カニキン",
+  "グロキン",
+  "ヒカマニ",
+  "ヒカキン",
+  "ばか",
+  "バカ",
+  "ごみ",
+  "ゴミ",
+  "かす",
+  "カス",
+  "くそ",
+  "糞",
+  "クソ",
+  "ブス",
+  "ぶす",
+];
+
 app.use(express.urlencoded({ extended: true })); ///おまじない
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 ///毎日4時に実行
-cron.schedule("0 0 4 * * *", function () {
+cron.schedule("0 8 23 * * *", function () {
   var date = Date.now(); ///現在時刻を取得
   console.log(date);
   var delete_date = date - 86400000; ///1日前の時刻を計算
@@ -58,6 +125,7 @@ cron.schedule("0 0 4 * * *", function () {
   db.all("SELECT * FROM room_number", function (err, row) {
     if (err) {
       console.log(err.message);
+      db.close();
     } else {
       for (let i = 0; i < row.length; i++) {
         ///もし、部屋の作成時間またはゲームの終了時間が、24時間前なら、
@@ -69,6 +137,7 @@ cron.schedule("0 0 4 * * *", function () {
               db.run("DROP TABLE " + row[i]["authorization"], (err) => {
                 if (err) {
                   console.log(err.message);
+                  db.close();
                 }
               });
               ///部屋の識別暗号_userslistを削除
@@ -77,6 +146,7 @@ cron.schedule("0 0 4 * * *", function () {
                 (err) => {
                   if (err) {
                     console.log(err.message);
+                    db.close();
                   }
                 }
               );
@@ -88,6 +158,7 @@ cron.schedule("0 0 4 * * *", function () {
                 (err) => {
                   if (err) {
                     console.log(err.message);
+                    db.close();
                   }
                 }
               );
@@ -102,9 +173,9 @@ cron.schedule("0 0 4 * * *", function () {
           }
         }
       }
+      db.close();
     }
   });
-  db.close();
 });
 
 ///以下socketioの処理
@@ -239,13 +310,10 @@ io.on("connection", (socket) => {
                             db = new sqlite3.Database("DV.sqlite3");
                             db.serialize(() => {
                               db.run(
-                                "UPDATE room_number SET permission=1, time=" +
-                                  time[i][1] * 60 +
-                                  ", original_time=" +
-                                  time[i][1] * 60 +
-                                  " WHERE authorization='" +
+                                "UPDATE room_number SET permission=1, time=?, original_time=? WHERE authorization='" +
                                   authorization +
                                   "'",
+                                [time[i][1] * 60, time[i][1] * 60],
                                 (err) => {
                                   if (err) {
                                     console.log(err.message);
@@ -345,12 +413,10 @@ io.on("connection", (socket) => {
             exist = false;
           }
         }
-        console.log(ix);
+
         ///ゲームの制限時間をスタートする。
         if (exist) {
-          console.log("er");
           if (typeof time[ix][4] == "undefined") {
-            console.log("kinami");
             clearTimeout(time[ix][3]);
             let limit = time[ix][1] * 60;
             time[ix][4] = setInterval(function () {
@@ -389,7 +455,6 @@ io.on("connection", (socket) => {
                           if (err) {
                             console.log(err.message);
                           } else {
-                            console.log(row);
                             var room_number = row2[0]["number"];
                             for (let i = 0; i < row.length; i++) {
                               ///部屋番号とゲームの終了時間、差出人のusername、レッテルの中身、宛名ユーザーの識別暗号を保存
@@ -464,71 +529,100 @@ io.on("connection", (socket) => {
   socket.on("msg_submit", (msg) => {
     var error;
     var authorization = socket.request.session.authorization;
+    let hiwai;
+    let gehin;
     if (authorization) {
       if (socket.request.session.status == 1) {
-        if (msg.length == 2) {
-          let db = new sqlite3.Database("DV.sqlite3");
-          ///部屋の識別暗号_userslistから、宛先のuserの識別暗号のusernameを取得する。
-          db.all(
-            "select * from " + authorization + "_userslist",
-            function (err, row) {
-              if (err) {
-                db.close();
-                console.log(err.message);
-              } else {
-                db.close();
-                let to_username;
-                for (let i = 0; i < row.length; i++) {
-                  if (row[i]["authorization"] == msg[0]) {
-                    to_username = row[i]["user"];
-                    break;
-                  }
-                }
-                ///貼ったレッテルのmsgごとの、識別暗号を生成する
-                db = new sqlite3.Database("DV.sqlite3");
-                ///外部の関数を使用する。
-                var control = authorization_js.create_authorization(
-                  authorization,
-                  db,
-                  "control"
-                );
-                ///部屋の識別暗号のテーブルに、この人のuser識別暗号、宛名のuser識別暗号、この人のuseername、宛名のusername、レッテル、レッテル識別暗号を記録する。
-                db.serialize(() => {
-                  db.run(
-                    "INSERT INTO " +
-                      authorization +
-                      "(player1, player2, msg, from_username, to_username, control) VALUES(?, ?, ?, ?, ?, ?)",
-                    [
-                      socket.request.session.user_authorization,
-                      msg[0],
-                      msg[1],
-                      socket.request.session.username,
-                      to_username,
-                      control,
-                    ],
-                    (err) => {
-                      if (err) {
-                        console.error(err.message);
-                        error = true;
-                      }
-                    }
-                  );
-                  db.close(); ///dbはこまめに閉める。
-                });
-                if (!error) {
-                  ///レッテルは他の人にも送信
-                  io.to(authorization).emit("receive_msg", [
-                    socket.request.session.user_authorization,
-                    msg[0],
-                    msg[1],
-                    socket.request.session.username,
-                    to_username,
-                    control,
-                  ]);
+        if ((msg.length == 2) | (msg.length == 3)) {
+          ///不適切な言葉が含まれているかチェックする。
+          ///完全にアウトな言葉は、送信できないっていう表示を出す。
+          for (let i = 0; i < NGword.length; i++) {
+            result = msg[1].includes(NGword[i]);
+            if (result) {
+              hiwai = true;
+              break;
+            }
+          }
+          if (hiwai == true) {
+            io.to(socket.id).emit("receive_msg", false);
+          } else {
+            ///まあそこまで、アウトでもないけど、一応不適切かもしれない言葉は、モーダルで警告する
+            if (msg.length == 2) {
+              for (let i = 0; i < NGpop.length; i++) {
+                result = msg[1].includes(NGpop[i]);
+                if (result) {
+                  gehin = true;
+                  break;
                 }
               }
             }
-          );
+            if (gehin == true) {
+              io.to(socket.id).emit("receive_msg", true);
+            } else {
+              let db = new sqlite3.Database("DV.sqlite3");
+              ///部屋の識別暗号_userslistから、宛先のuserの識別暗号のusernameを取得する。
+              db.all(
+                "select * from " + authorization + "_userslist",
+                function (err, row) {
+                  if (err) {
+                    db.close();
+                    console.log(err.message);
+                  } else {
+                    db.close();
+                    let to_username;
+                    for (let i = 0; i < row.length; i++) {
+                      if (row[i]["authorization"] == msg[0]) {
+                        to_username = row[i]["user"];
+                        break;
+                      }
+                    }
+                    ///貼ったレッテルのmsgごとの、識別暗号を生成する
+                    db = new sqlite3.Database("DV.sqlite3");
+                    ///外部の関数を使用する。
+                    var control = authorization_js.create_authorization(
+                      authorization,
+                      db,
+                      "control"
+                    );
+                    ///部屋の識別暗号のテーブルに、この人のuser識別暗号、宛名のuser識別暗号、この人のuseername、宛名のusername、レッテル、レッテル識別暗号を記録する。
+                    db.serialize(() => {
+                      db.run(
+                        "INSERT INTO " +
+                          authorization +
+                          "(player1, player2, msg, from_username, to_username, control) VALUES(?, ?, ?, ?, ?, ?)",
+                        [
+                          socket.request.session.user_authorization,
+                          msg[0],
+                          msg[1],
+                          socket.request.session.username,
+                          to_username,
+                          control,
+                        ],
+                        (err) => {
+                          if (err) {
+                            console.error(err.message);
+                            error = true;
+                          }
+                        }
+                      );
+                      db.close(); ///dbはこまめに閉める。
+                    });
+                    if (!error) {
+                      ///レッテルは他の人にも送信
+                      io.to(authorization).emit("receive_msg", [
+                        socket.request.session.user_authorization,
+                        msg[0],
+                        msg[1],
+                        socket.request.session.username,
+                        to_username,
+                        control,
+                      ]);
+                    }
+                  }
+                }
+              );
+            }
+          }
         }
       }
     }
@@ -538,62 +632,88 @@ io.on("connection", (socket) => {
   socket.on("edit_msg", (msg) => {
     var error;
     var authorization = socket.request.session.authorization;
+    let hiwai;
+    let gehin;
     if (authorization) {
       if (socket.request.session.status == 1) {
-        if (msg.length == 2) {
-          let db = new sqlite3.Database("DV.sqlite3");
-          ///部屋の識別暗号のテーブルを取得する。
-          db.all("select * from " + authorization, function (err, row) {
-            let exist;
-            if (err) {
-              console.log(err.message);
-              db.close();
-            } else {
-              db.close(); ///dbはこまめに必ず閉める。
-              ///編集するレッテルと同じ識別暗号の、レッテルをテーブルから探してくる。
-              for (let i = 0; i < row.length; i++) {
-                if (row[i]["control"] == msg[1]) {
-                  exist = true;
-                  var to = row[i]["player2"];
-                  var from = row[i]["player1"];
+        if ((msg.length == 2) | (msg.length == 3)) {
+          ///不適切な言葉が含まれているかチェックする。
+          ///完全にアウトな言葉は、送信できないっていう表示を出す。
+          for (let i = 0; i < NGword.length; i++) {
+            result = msg[0].includes(NGword[i]);
+            if (result) {
+              hiwai = true;
+              break;
+            }
+          }
+          if (hiwai == true) {
+            io.to(socket.id).emit("receive_editmsg", false);
+          } else {
+            ///まあそこまで、アウトでもないけど、一応不適切かもしれない言葉は、モーダルで警告する
+            if (msg.length == 2) {
+              for (let i = 0; i < NGpop.length; i++) {
+                result = msg[0].includes(NGpop[i]);
+                if (result) {
+                  gehin = true;
                   break;
-                } else {
-                  exist = false;
-                }
-              }
-              if (exist) {
-                ///部屋の識別暗号テーブルのmsgを書き換える。
-                db = new sqlite3.Database("DV.sqlite3");
-                db.serialize(() => {
-                  db.run(
-                    "UPDATE " +
-                      authorization +
-                      " SET msg='" +
-                      msg[0] +
-                      "' WHERE control='" +
-                      msg[1] +
-                      "'",
-                    (err) => {
-                      if (err) {
-                        console.error(err.message);
-                        error = true;
-                      }
-                    }
-                  );
-                  db.close(); ///dbは必ずこまめに閉める。
-                });
-                if (!error) {
-                  ///処理が終わったら、部屋の他のユーザーに、編集したことを通知する。
-                  io.to(authorization).emit("receive_editmsg", [
-                    to,
-                    from,
-                    msg[0],
-                    msg[1],
-                  ]);
                 }
               }
             }
-          });
+            if (gehin == true) {
+              io.to(socket.id).emit("receive_editmsg", true);
+            } else {
+              let db = new sqlite3.Database("DV.sqlite3");
+              ///部屋の識別暗号のテーブルを取得する。
+              db.all("select * from " + authorization, function (err, row) {
+                let exist;
+                if (err) {
+                  console.log(err.message);
+                  db.close();
+                } else {
+                  db.close(); ///dbはこまめに必ず閉める。
+                  ///編集するレッテルと同じ識別暗号の、レッテルをテーブルから探してくる。
+                  for (let i = 0; i < row.length; i++) {
+                    if (row[i]["control"] == msg[1]) {
+                      exist = true;
+                      var to = row[i]["player2"];
+                      var from = row[i]["player1"];
+                      break;
+                    } else {
+                      exist = false;
+                    }
+                  }
+                  if (exist) {
+                    ///部屋の識別暗号テーブルのmsgを書き換える。
+                    db = new sqlite3.Database("DV.sqlite3");
+                    db.serialize(() => {
+                      db.run(
+                        "UPDATE " +
+                          authorization +
+                          " SET msg=? WHERE control=?",
+                        [msg[0], msg[1]],
+                        (err) => {
+                          if (err) {
+                            console.error(err.message);
+                            error = true;
+                          }
+                        }
+                      );
+                      db.close(); ///dbは必ずこまめに閉める。
+                    });
+                    if (!error) {
+                      ///処理が終わったら、部屋の他のユーザーに、編集したことを通知する。
+                      io.to(authorization).emit("receive_editmsg", [
+                        to,
+                        from,
+                        msg[0],
+                        msg[1],
+                      ]);
+                    }
+                  }
+                }
+              });
+            }
+          }
         }
       }
     }
@@ -630,11 +750,8 @@ io.on("connection", (socket) => {
               ///レッテルを削除
               db.serialize(() => {
                 db.run(
-                  "DELETE FROM " +
-                    authorization +
-                    " WHERE control='" +
-                    msg +
-                    "'",
+                  "DELETE FROM " + authorization + " WHERE control=?",
+                  [msg],
                   (err) => {
                     if (err) {
                       console.error(err.message);
@@ -708,7 +825,8 @@ app.use("/home", homeRouter);
 app.use("/internal_error", internal_errorRouter);
 app.use("/login", loginRouter);
 app.use("/logout", logoutRouter);
-app.use("/profile", profileRouter);
+app.use("/setting", profileRouter);
+app.use("/help", helpRouter);
 app.use("/random", randomRouter);
 app.use("/room", roomRouter);
 app.use("/room/*", room_joinRouter);

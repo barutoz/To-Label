@@ -1,4 +1,5 @@
 const express = require("express"); ///おまじない
+const bcrypt = require("bcrypt");
 const router = express.Router(); ///おまじない
 const sqlite3 = require("sqlite3"); ///loginされたときに、データベースを参照する必要があるため、sqlite3のモジュールをインポート
 
@@ -32,7 +33,16 @@ router.post("/", (req, res) => {
       for (let i = 0; i < row.length; i++) {
         ///送られてきたユーザー・pswdがデータベースに一致しているか確認していく。
         if (req.body.username == row[i]["username"]) {
-          if (req.body.password == row[i]["password"]) {
+          ///下のコード:送られてきたpswdとdb上のハッシュ値pswdを比較
+          ///ハッシュ化とは?
+          ///平文を解読されないようにするために、平文をランダムな文字列にする技術。
+          ///一番の特徴としては、一度ハッシュ値を作成すると、ランダムな文字列(ハッシュ値)から平文に解読することができない。
+          ///不可逆性が挙げられる。pswdの保存にはもってこい。
+          ///また、ハッシュ化の特徴として、同じ文字列は必ず同じハッシュ値になるという性質がある。
+          ///これをpswdに使おうとすると、まずsignup時に、db上にハッシュ化されたpswdを保存。
+          ///login時には、クライアントから受け取ったpswdを一度ハッシュ値にして、そのハッシュ値とdb上のハッシュ値が一致して入れば、ログインできる。
+          ///このプログラムでもそのやり方を採用している。詳しくは調べてね。
+          if (bcrypt.compareSync(req.body.password, row[i]["password"])) {
             ///ユーザーとpswdが一致していたら、user用識別番号idとauthorizationをもらう。
             var login_id = row[i]["id"];
             var authorization = row[i]["authorization"];

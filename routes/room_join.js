@@ -97,11 +97,8 @@ router.get("/", (req, res) => {
                   db.run(
                     "INSERT INTO " +
                       req.session.authorization +
-                      "_userslist (user,permission,authorization) VALUES('" +
-                      req.session.username +
-                      "',0,'" +
-                      req.session.user_authorization +
-                      "');",
+                      "_userslist (user,permission,authorization) VALUES(?,?,?);",
+                    [req.session.username, 0, req.session.user_authorization],
                     (err) => {
                       if (err) {
                         console.error(err.message);
