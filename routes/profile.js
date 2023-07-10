@@ -15,6 +15,9 @@ router.get("/", (req, res) => {
     } else if (req.session.login_error) {
       req.session.login_error = false;
       pswd_error = "今のパスワードが違います。";
+    } else if (req.session.setting_success) {
+      req.session.setting_success = false;
+      pswd_error = "新しいusernameとパスワードになりました。";
     } else {
       pswd_error = "";
     }
@@ -104,6 +107,7 @@ router.post("/", (req, res) => {
         req.session.username = newUsername;
         // 関連するチームテーブルの更新も追加する。
         // 更新成功した場合はプロフィールページにリダイレクト
+        req.session.setting_success = true;
         return res.redirect("/setting");
         ///入力させた古いpswdに間違えがあれば、古いpswdが違うよ表示を出す(#2)
       } else {
