@@ -2,8 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Hello World</title>
-
+    <title>To-Label - home</title>
+    <link rel="icon" type="image/png" href="/uploads/To-Label.png" />
     <!-- 以下、BootStrapの導入記述 -->
     <link
       rel="stylesheet"
@@ -32,135 +32,169 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+ <!-- Japanese Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+<style>
+  /* For iPad mini and larger devices */
+
+  body {
+        font-family: "Noto Sans JP", sans-serif;
+        background-color: white;
+        color: black;
+      }
+
+@media (min-width: 768px) {
+
+  .navbar-nav .dropdown-menu {
+    display: block;
+    position: static;
+    background-color: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .navbar-nav .dropdown-item {
+    padding: .5rem 1rem;
+  }
+
+  .navbar-nav .nav-link {
+    display: inline;
+  }
+}
+
+</style>
+
   </head>
 
   <body class="container" style="background-color: rgb(249, 245, 253)">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container">
-        <a class="navbar-brand" href="/home">To-Label</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div
-          class="collapse navbar-collapse justify-content-end"
-          id="navbarNav"
-        >
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="fa-solid fa-circle-question"></i>
-              </a>
-            </li>
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="navbarDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i class="fa-solid fa-user"></i>
-                <!-- ユーザーアイコンの画像ファイルへのパス -->
-              </a>
-              <ul
-                class="dropdown-menu dropdown-menu-end"
-                aria-labelledby="navbarDropdown"
-              >
-                <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                <li><a class="dropdown-item" href="/history">History</a></li>
-                <li><a class="dropdown-item" href="/setting">Setting</a></li>
-                <li><a class="dropdown-item" href="/help">Help</a></li>
-                <li><a class="dropdown-item" href="/logout">Logout</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
+    <!-- header -->
 
-    <main class="m-4">
-      <p class="font-weight-bold">ようこそ！ <%= username %>さん</p>
-      <div class="container">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="position: fixed; left: 0; top: 0; width: 100%; z-index: 100">
+    <div class="container">
+        <a class="navbar-brand" href="/home" style="font-size: 3vh; font-weight: bold; position: relative; left: -5%;">To-Label</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="height: 4vh; width: 4vh; position: relative; right: -5%">
+            <span class="navbar-toggler-icon" style="font-size: 2vh"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" style="margin: 2vh" id="navbarNav">
+            <!-- Mobile version menu -->
+            <ul class="navbar-nav d-lg-none">
+                <li class="nav-item dropdown" style="height: 3vh">  
+                    <ul class="dropdown-menu dropdown-menu-end bg-dark" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item text-white" href="/history" style="font-size: 3vh; font-weight: bold">History</a></li>
+                        <li><a class="dropdown-item text-white" href="/setting" style="font-size: 3vh; font-weight: bold">Setting</a></li>
+                        <li><a class="dropdown-item text-white" href="/help" style="font-size: 3vh; font-weight: bold">Help</a></li>
+                        <li><a class="dropdown-item text-white" href="/logout" style="font-size: 3vh; font-weight: bold">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <!-- Desktop version menu -->
+            <ul class="navbar-nav d-none d-lg-flex">
+                <li class="nav-item"><a class="nav-link" href="/history" style="font-size: 3vh; font-weight: bold">History</a></li>
+                <li class="nav-item"><a class="nav-link" href="/setting" style="font-size: 3vh; font-weight: bold">Setting</a></li>
+                <li class="nav-item"><a class="nav-link" href="/help" style="font-size: 3vh; font-weight: bold">Help</a></li>
+                <li class="nav-item"><a class="nav-link" href="/logout" style="font-size: 3vh; font-weight: bold">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+  
+
+    <main class="container" style="position: absolute; top:18vh; width: 100%; z-index:-100;">
+      <div>
+        <h3 class="font-weight-bold">ようこそ！ <%= username %>さん</h3>
+      
         <div class="card">
           <div class="card-body d-flex justify-content-between">
             <div class="card-section">
-              <img src="user-icon.png" alt="User Icon" width="50" height="50" />
             </div>
             <div class="card-section">
               <p>過去のレッテル</p>
-              <h3>世紀の〇〇</h3>
+              <% if(exists){%>
+              <h4><%= your_msg[0]["msg"] %></h4>
+              <% if(your_msg.length>=2){%>
               <p>他にも</p>
-              <p>〇〇、〇〇、〇〇</p>
+              <p>
+                <% for(let i=0; i<your_msg.length; i++){%> <%=
+                your_msg[i]["msg"] %>、<%}%>
+              </p>
+              <%}}else{%>
+              <p>あなたにはレッテルがありません。</p>
+              <h4>ゲームを始めてみましょう!</h4>
+              <%}%>
             </div>
             <div class="card-section d-flex align-items-end">
-              <button class="btn btn-primary">さらに見る</button>
+              <a href="/history"
+                ><button class="btn btn-primary">さらに見る</button></a
+              >
+            </div>
+          </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <h4 class="mt-5">ルームに参加する</h4>
+    
+          <div class="card mt-3">
+            <div class="card-body" style="position: relative;">
+              <form method="post" action="/room">
+                <label for="room" hidden>room</label>
+                <div class="col-6">
+                  <input
+                    type="number"
+                    name="room"
+                    class="form-control"
+                    id="room"
+                    placeholder="4桁の数字"
+                  />
+                </div>
+      
+                <input
+                  type="submit"
+                  class="btn btn-primary mt-3"
+                  style="position: absolute; right: 1rem"
+                  value="入室"
+                />
+              </form>
+              <p id="append-msg2" class="text-danger p-1"><%= msg %></p>
+            </div>
+          </div>
+        </div>
+      
+        <div class="col-md-6">
+          <h4 class="mt-5">ルームを新規作成する</h4>
+      
+          <div class="card mt-3">
+            <div class="card-body">
+              <p>ボタンを押すとグループ番号が生成されます。</p>
+              <div class="row g-3">
+                <div class="col-auto">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="new-number"
+                    placeholder="IDを生成します"
+                    disabled
+                  />
+                </div>
+                <div class="col-auto">
+                  <button class="btn btn-primary " id="random_number">
+                    自動生成
+                  </button>
+                </div>
+                <div class="col-auto">
+                  <h5 id="append-msg"></h5>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <p>ルームに参加する</p>
-
-      <div class="card mt-4">
-        <div class="card-body" style="position: relative; height: 10rem">
-          <form method="post" action="/room">
-            <label for="room" hidden>room</label>
-            <div class="col-6">
-              <input
-                type="number"
-                name="room"
-                class="form-control"
-                id="room"
-                placeholder="4桁の数字"
-              />
-            </div>
-
-            <input
-              type="submit"
-              class="btn btn-primary mt-3"
-              style="position: absolute; right: 1rem"
-              value="入室"
-            />
-          </form>
-          <h5 id="append-msg2" class="text-danger p-1"><%= msg %></h5>
-        </div>
       </div>
-
-      <p>ルームを新規作成する</p>
-
-      <div class="card mt-4">
-        <div class="card-body">
-          <h4>ボタンを押すとグループ番号が生成されます。</h4>
-          <div class="row g-3">
-            <div class="col-auto">
-              <input
-                type="text"
-                class="form-control"
-                id="new-number"
-                placeholder="IDを生成します"
-                disabled
-              />
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-primary" id="random_number">
-                自動生成
-              </button>
-            </div>
-            <div class="col-auto">
-              <h5 id="append-msg"></h5>
-            </div>
-          </div>
-        </div>
-      </div>
+  
     </main>
 
     <script>

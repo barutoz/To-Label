@@ -2,7 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Hello World</title>
+    <title>To-Label - room</title>
+    <link rel="icon" type="image/png" href="/uploads/To-Label.png" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
@@ -25,11 +26,59 @@
     <link rel="stylesheet" href="/css/style.css" />
     <script src="/send_url.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Japanese Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* For iPad mini and larger devices */
+
+      body {
+        font-family: "Noto Sans JP", sans-serif;
+        background-color: white;
+        color: black;
+      }
+
+      @media (min-width: 768px) {
+        .navbar-nav .dropdown-menu {
+          display: block;
+          position: static;
+          background-color: transparent;
+          border: 0;
+          box-shadow: none;
+        }
+
+        .navbar-nav .dropdown-item {
+          padding: 0.5rem 1rem;
+        }
+
+        .navbar-nav .nav-link {
+          display: inline;
+        }
+      }
+    </style>
   </head>
-  <body style="background-color: rgb(249, 245, 253)">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <body class="container" style="background-color: rgb(249, 245, 253)">
+    <!-- header -->
+
+    <nav
+      class="navbar navbar-expand-lg navbar-dark bg-dark"
+      style="position: fixed; left: 0; top: 0; width: 100%; z-index: 100"
+    >
       <div class="container">
-        <a class="navbar-brand" href="/home">To-Label</a>
+        <a
+          class="navbar-brand"
+          href="/home"
+          style="
+            font-size: 3vh;
+            font-weight: bold;
+            position: relative;
+            left: -5%;
+          "
+          >To-Label</a
+        >
         <button
           class="navbar-toggler"
           type="button"
@@ -38,60 +87,114 @@
           aria-controls="navbarNav"
           aria-expanded="false"
           aria-label="Toggle navigation"
+          style="height: 4vh; width: 4vh; position: relative; right: -5%"
         >
-          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon" style="font-size: 2vh"></span>
         </button>
         <div
           class="collapse navbar-collapse justify-content-end"
+          style="margin: 2vh"
           id="navbarNav"
         >
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" href="#">
-                <i class="fa-solid fa-circle-question"></i>
-              </a>
-            </li>
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="navbarDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <i class="fa-solid fa-user"></i>
-                <!-- ユーザーアイコンの画像ファイルへのパス -->
-              </a>
+          <!-- Mobile version menu -->
+          <ul class="navbar-nav d-lg-none">
+            <li class="nav-item dropdown" style="height: 3vh">
               <ul
-                class="dropdown-menu dropdown-menu-end"
+                class="dropdown-menu dropdown-menu-end bg-dark"
                 aria-labelledby="navbarDropdown"
               >
-                <li><a class="dropdown-item" href="/profile">Profile</a></li>
-                <li><a class="dropdown-item" href="/history">History</a></li>
-                <li><a class="dropdown-item" href="/setting">Setting</a></li>
-                <li><a class="dropdown-item" href="/help">Help</a></li>
-                <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                <li>
+                  <a
+                    class="dropdown-item text-white"
+                    href="/history"
+                    style="font-size: 3vh; font-weight: bold"
+                    >History</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item text-white"
+                    href="/setting"
+                    style="font-size: 3vh; font-weight: bold"
+                    >Setting</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item text-white"
+                    href="/help"
+                    style="font-size: 3vh; font-weight: bold"
+                    >Help</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item text-white"
+                    href="/logout"
+                    style="font-size: 3vh; font-weight: bold"
+                    >Logout</a
+                  >
+                </li>
               </ul>
+            </li>
+          </ul>
+          <!-- Desktop version menu -->
+          <ul class="navbar-nav d-none d-lg-flex">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="/history"
+                style="font-size: 3vh; font-weight: bold"
+                >History</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="/setting"
+                style="font-size: 3vh; font-weight: bold"
+                >Setting</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="/help"
+                style="font-size: 3vh; font-weight: bold"
+                >Help</a
+              >
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="/logout"
+                style="font-size: 3vh; font-weight: bold"
+                >Logout</a
+              >
             </li>
           </ul>
         </div>
       </div>
     </nav>
 
-    <main class="m-4">
-      <h1 class="text-center">レッテルを貼りましょう!</h1>
-      <p class="text-right" style="text-align: right" id="timer"></p>
-      <div class="progress mb-4">
-        <div
-          class="progress-bar"
-          role="progressbar"
-          style="width: 25%"
-          aria-valuenow="25"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          id="progress"
-        ></div>
+    <main
+      class="container"
+      style="position: absolute; top: 18vh; width: 100%; z-index: -100"
+    >
+      <div class="card py-3 my-3">
+        <h3 class="text-center">レッテルを貼りましょう!</h3>
+        <p class="text-right" style="text-align: right" id="timer"></p>
+        <div class="progress mb-4">
+          <div
+            class="progress-bar"
+            role="progressbar"
+            style="width: 25%"
+            aria-valuenow="25"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            id="progress"
+          ></div>
+        </div>
       </div>
       <div class="row">
         <div class="col">
@@ -213,6 +316,74 @@
         </div>
       </div>
     </main>
+    <div
+      class="modal fade"
+      id="modal_recommend"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">下品!!! 卑猥!!!</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="NG_pop"></div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              送信しない
+            </button>
+            <button type="button" class="btn btn-primary" id="resend_msg">
+              送信する
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="modal fade"
+      id="modal_prohibit"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">下品!!! 卑猥!!!</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="NG_pop2"></div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <input type="text" id="address_pop" hidden />
+    <input type="text" id="msg_pop" hidden />
+    <input type="number" id="number_pop" hidden />
     <script>
       const socket = io();
       let content;
@@ -265,9 +436,22 @@
           $("#origin").text("宛名を入れてね!!");
         } else {
           if ($("#message").val() == "") {
-            $("message").attr("placeholder", "なんか入力してね");
+            $("#message").attr("placeholder", "なんか入力してね");
           } else {
             content = [$("#address").val(), $("#message").val()];
+            $("#NG_pop").text(
+              "あなたの入力した言葉" +
+                $("#message").val() +
+                "は下品で猥褻です。送信しないことを推奨します。"
+            );
+            $("#NG_pop2").text(
+              "あなたの入力した言葉" +
+                $("#message").val() +
+                "は極度に下品で猥褻なものです。送信できません。"
+            );
+            $("#msg_pop").val($("#message").val());
+            $("#address_pop").val($("#address").val());
+            $("#number_pop").val(0);
             socket.emit("msg_submit", content);
             $("#message").val("");
           }
@@ -290,6 +474,11 @@
                 msg[5] +
                 '></div><div class="col-5 pb-0"><button type="button" class="btn btn-primary btn-sm" name="complete" style="display: none;">終了</button><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-primary btn-sm" name="edit">編集</button><button type="button" class="btn btn-secondary btn-sm" name="delete">削除</button></div></div></div></li>'
             );
+            $("#NG_pop2").text("");
+            $("#NG_pop").text("");
+            $("#msg_pop").val("");
+            $("#address_pop").val("");
+            $("#number_pop").val("");
           } else if (
             msg[0] !== self_authorization &&
             msg[1] !== self_authorization
@@ -305,6 +494,49 @@
                 msg[2] +
                 "</p></div></div>"
             );
+          }
+        } else {
+          if (msg == true) {
+            $("#NG_pop2").text("");
+            $("#modal_recommend").modal("show");
+          } else if (msg == false) {
+            $("#NG_pop").text("");
+            $("#msg_pop").val("");
+            $("#address_pop").val("");
+            $("#modal_prohibit").modal("show");
+          }
+        }
+      });
+
+      $("#resend_msg").click(function () {
+        var msg = $("#msg_pop").val();
+        var address = $("#address_pop").val();
+        var edit = $("#number_pop").val();
+        if (msg == "") {
+          $("#msg_pop").val("");
+          $("#address_pop").val("");
+          $("#NG_pop").text("送信に失敗しました。");
+          $("#number_pop").val("");
+        } else {
+          if (address == "") {
+            $("#msg_pop").val("");
+            $("#address_pop").val("");
+            $("#NG_pop").text("送信に失敗しました。");
+            $("#number_pop").val("");
+          } else {
+            if (edit == 0) {
+              socket.emit("msg_submit", [address, msg, true]);
+              $("#msg_pop").val("");
+              $("#address_pop").val("");
+              $("#modal_recommend").modal("hide");
+              $("#number_pop").val("");
+            } else if (edit == 1) {
+              socket.emit("edit_msg", [msg, address, true]);
+              $("#msg_pop").val("");
+              $("#address_pop").val("");
+              $("#modal_recommend").modal("hide");
+              $("#number_pop").val("");
+            }
           }
         }
       });
@@ -324,7 +556,24 @@
           .parent()
           .find("input")
           .attr("name");
-        socket.emit("edit_msg", [msg, control]);
+        if (!(control == "")) {
+          if (!(msg == "")) {
+            $("#NG_pop").text(
+              "あなたの入力した言葉" +
+                msg +
+                "は下品で猥褻です。送信しないことを推奨します。"
+            );
+            $("#NG_pop2").text(
+              "あなたの入力した言葉" +
+                msg +
+                "は極度に下品で猥褻なものです。送信できません。"
+            );
+            $("#msg_pop").val(msg);
+            $("#address_pop").val(control);
+            $("#number_pop").val(1);
+            socket.emit("edit_msg", [msg, control]);
+          }
+        }
       });
 
       $(document).on("click", "button[name='delete']", function () {
@@ -335,7 +584,6 @@
           .parent()
           .find("input")
           .attr("name");
-        console.log(control);
         socket.emit("delete_msg", control);
       });
 
@@ -376,6 +624,16 @@
                   "</p></div></div>"
               );
             }
+          }
+        } else {
+          if (msg == true) {
+            $("#NG_pop2").text("");
+            $("#modal_recommend").modal("show");
+          } else if (msg == false) {
+            $("#NG_pop").text("");
+            $("#msg_pop").val("");
+            $("#address_pop").val("");
+            $("#modal_prohibit").modal("show");
           }
         }
       });
