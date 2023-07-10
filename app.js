@@ -117,7 +117,7 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 ///毎日4時に実行
-cron.schedule("0 8 23 * * *", function () {
+cron.schedule("0 0 4 * * *", function () {
   var date = Date.now(); ///現在時刻を取得
   console.log(date);
   var delete_date = date - 86400000; ///1日前の時刻を計算
