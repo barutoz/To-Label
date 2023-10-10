@@ -385,7 +385,9 @@
     <input type="text" id="msg_pop" hidden />
     <input type="number" id="number_pop" hidden />
     <script>
-      const socket = io();
+      var socket = io("http://" + location.hostname, {
+        path: "/To-Label",
+      });
       let content;
       const self_authorization = "<%= self_authorization %>";
       let time = "<%= time %>";

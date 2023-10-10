@@ -264,7 +264,9 @@
     </main>
 
     <script>
-      var socket = io();
+      var socket = io("http://" + location.hostname, {
+        path: "/To-Label",
+      });
       let timer;
       let timer2;
       const self_authorization = "<%= self_authorization %>";
