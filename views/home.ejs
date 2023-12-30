@@ -1,223 +1,226 @@
 <!DOCTYPE html>
-<html>
+<html lang="JP">
   <head>
-    <meta charset="utf-8" />
-    <title>To-Label - home</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/uploads/To-Label.png" />
-    <!-- 以下、BootStrapの導入記述 -->
+    <title>To-Label</title>
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
       crossorigin="anonymous"
     />
     <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script
-      src="https://code.jquery.com/jquery-3.7.0.js"
-      integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <script src="/send_url.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
- <!-- Japanese Font -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-<style>
-  /* For iPad mini and larger devices */
-
-  body {
-        font-family: "Noto Sans JP", sans-serif;
-        background-color: white;
-        color: black;
-      }
-
-@media (min-width: 768px) {
-
-  .navbar-nav .dropdown-menu {
-    display: block;
-    position: static;
-    background-color: transparent;
-    border: 0;
-    box-shadow: none;
-  }
-
-  .navbar-nav .dropdown-item {
-    padding: .5rem 1rem;
-  }
-
-  .navbar-nav .nav-link {
-    display: inline;
-  }
-}
-
-</style>
-
   </head>
-
-  <body class="container" style="background-color: rgb(249, 245, 253)">
-    <!-- header -->
-
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="position: fixed; left: 0; top: 0; width: 100%; z-index: 100">
-    <div class="container">
-        <a class="navbar-brand" href="/home" style="font-size: 3vh; font-weight: bold; position: relative; left: -5%;">To-Label</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="height: 4vh; width: 4vh; position: relative; right: -5%">
-            <span class="navbar-toggler-icon" style="font-size: 2vh"></span>
+  <body>
+    <nav
+      class="navbar bg-dark border-bottom border-bottom-dark navbar-expand-lg fixed-top"
+      style="font-size: 30px; font-weight: bold; width: 100%"
+      data-bs-theme="dark"
+    >
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#" style="font-size: 30px">To-Label</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarTogglerDemo02"
+          aria-controls="navbarTogglerDemo02"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+          style="text-align: right"
+        >
+          <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse justify-content-end" style="margin: 2vh" id="navbarNav">
-            <!-- Mobile version menu -->
-            <ul class="navbar-nav d-lg-none">
-                <li class="nav-item dropdown" style="height: 3vh">  
-                    <ul class="dropdown-menu dropdown-menu-end bg-dark" aria-labelledby="navbarDropdown">
-                        <li><a class="dropdown-item text-white" href="/history" style="font-size: 3vh; font-weight: bold">History</a></li>
-                        <li><a class="dropdown-item text-white" href="/setting" style="font-size: 3vh; font-weight: bold">Setting</a></li>
-                        <li><a class="dropdown-item text-white" href="/help" style="font-size: 3vh; font-weight: bold">Help</a></li>
-                        <li><a class="dropdown-item text-white" href="/logout" style="font-size: 3vh; font-weight: bold">Logout</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <!-- Desktop version menu -->
-            <ul class="navbar-nav d-none d-lg-flex">
-                <li class="nav-item"><a class="nav-link" href="/history" style="font-size: 3vh; font-weight: bold">History</a></li>
-                <li class="nav-item"><a class="nav-link" href="/setting" style="font-size: 3vh; font-weight: bold">Setting</a></li>
-                <li class="nav-item"><a class="nav-link" href="/help" style="font-size: 3vh; font-weight: bold">Help</a></li>
-                <li class="nav-item"><a class="nav-link" href="/logout" style="font-size: 3vh; font-weight: bold">Logout</a></li>
-            </ul>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" href="">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/history">History</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/setting">Setting</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/help">help</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Logout</a>
+            </li>
+          </ul>
         </div>
-    </div>
-</nav>
-
-  
-
-    <main class="container" style="position: absolute; top:18vh; width: 100%; z-index:-100;">
-      <div>
-        <h3 class="font-weight-bold">ようこそ！ <%= username %>さん</h3>
-      
-        <div class="card">
-          <div class="card-body d-flex justify-content-between">
-            <div class="card-section">
-            </div>
-            <div class="card-section">
-              <p>過去のレッテル</p>
-              <% if(exists){%>
-              <h4><%= your_msg[0]["msg"] %></h4>
-              <% if(your_msg.length>=2){%>
-              <p>他にも</p>
-              <p>
-                <% for(let i=0; i<your_msg.length; i++){%> <%=
-                your_msg[i]["msg"] %>、<%}%>
-              </p>
-              <%}}else{%>
-              <p>あなたにはレッテルがありません。</p>
-              <h4>ゲームを始めてみましょう!</h4>
-              <%}%>
-            </div>
-            <div class="card-section d-flex align-items-end">
-              <a href="/history"
-                ><button class="btn btn-primary">さらに見る</button></a
-              >
-            </div>
-          </div>
       </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <h4 class="mt-5">ルームに参加する</h4>
-    
-          <div class="card mt-3">
-            <div class="card-body" style="position: relative;">
-              <form method="post" action="/room">
-                <label for="room" hidden>room</label>
-                <div class="col-6">
-                  <input
-                    type="number"
-                    name="room"
-                    class="form-control"
-                    id="room"
-                    placeholder="4桁の数字"
-                  />
-                </div>
-      
-                <input
-                  type="submit"
-                  class="btn btn-primary mt-3"
-                  style="position: absolute; right: 1rem"
-                  value="入室"
-                />
-              </form>
-              <p id="append-msg2" class="text-danger p-1"><%= msg %></p>
+    </nav>
+    <main style="position: absolute; top: 80px; right: 30px; left: 30px">
+      <h2 class="mt-5" style="text-align: center">
+        ようこそ! <%= username %>さん
+      </h2>
+      <div class="container">
+        <div class="row">
+          <div class="col-12 col-md-6">
+            <div
+              class="card bg-warning-subtle border border-warning rounded-3 mt-3 h-100"
+            >
+              <div
+                class="card-header bg-warning border border-warning text-dark"
+              >
+                <h4>過去のレッテル</h4>
+              </div>
+              <div class="card-body text-warning-emphasis">
+                <% if(exists){%>
+                <h5><%= your_msg[0]["msg"] %></h5>
+                <% if(your_msg.length>=2){%>
+                <p class="mt-3">他にも...</p>
+                <ul>
+                <% for(let i=1; i<your_msg.length; i++){%>
+                  <li><%= your_msg[i]["msg"] %></li>
+                <%}%></ul>
+                <a href="/history"
+                  ><button
+                    id="motto"
+                    class="btn btn-warning text-dark"
+                    style="position: absolute;
+                    right: 1rem;
+                    font-weight: bold;"
+                  >
+                    さらに見る
+                  </button></a
+                >
+                <%}}else{%>
+                <p>あなたにはレッテルがありません。</p>
+                <h5>ゲームを始めてみましょう!</h5>
+                <%}%>
+              </div>
             </div>
           </div>
-        </div>
-      
-        <div class="col-md-6">
-          <h4 class="mt-5">ルームを新規作成する</h4>
-      
-          <div class="card mt-3">
-            <div class="card-body">
-              <p>ボタンを押すとグループ番号が生成されます。</p>
-              <div class="row g-3">
-                <div class="col-auto">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="new-number"
-                    placeholder="IDを生成します"
-                    disabled
-                  />
+          <div class="col-12 col-md-6" id="flex-right">
+            <div
+              class="card bg-success-subtle border border-success rounded-3 mt-3 h-49"
+            >
+              <div
+                class="card-header bg-success border border-success text-white"
+              >
+                <h4>ルームに参加する</h4>
+              </div>
+              <div class="card-body text-success-emphasis">
+                <form method="post" action="/room">
+                  <div class="row">
+                    <div class="col-7">
+                      <input
+                        type="number"
+                        name="room"
+                        class="form-control"
+                        id="room"
+                        placeholder="4桁の数字"
+                      />
+                    </div>
+                    <div class="col-5">
+                      <input
+                        type="submit"
+                        class="btn btn-success"
+                        style="
+                          position: absolute;
+                          right: 1rem;
+                          font-weight: bold;
+                        "
+                        value="入室"
+                      />
+                    </div>
+                    <p id="append-msg2" class="text-danger p-1"><%= msg %></p>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <div
+              class="card bg-danger-subtle border border-danger rounded-3 mt-3 h-50"
+            >
+              <div
+                class="card-header bg-danger text-white border border-danger"
+              >
+                <h4>ルームを新規作成する</h4>
+              </div>
+              <div class="card-body text-danger-emphasis">
+                <p>ボタンを押すとグループ番号が生成されます。</p>
+                <div class="row g-3">
+                  <div class="col-7">
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="new-number"
+                      placeholder="IDを生成します"
+                      disabled
+                    />
+                  </div>
+                  <div class="col-5">
+                    <button
+                      class="btn btn-danger"
+                      style="position: absolute; right: 1rem; font-weight: bold"
+                      id="random_number"
+                    >
+                      自動生成
+                    </button>
+                  </div>
                 </div>
-                <div class="col-auto">
-                  <button class="btn btn-primary " id="random_number">
-                    自動生成
-                  </button>
-                </div>
-                <div class="col-auto">
-                  <h5 id="append-msg"></h5>
+                <div>
+                  <p id="append-msg"></p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-      </div>
-  
     </main>
-
-    <script>
-      $("#random_number").click(function () {
-        $.post("/random", "random=true").done(function (data) {
-          console.log(data);
-          if (data) {
-            $("#new-number").val(data);
-            $("#append-msg").text(
-              "生成完了! 同じグループメンバーにシェアしてね!"
-            );
-            $("#append-msg").attr("class", "text-success p-1");
-            $("#append-msg2").text(
-              "入室ボタンを押せば、番号入力いらずで入室できます!"
-            );
-            $("#append-msg2").attr("class", "text-success p-1");
-            $("#room").val(data);
-          } else {
-            $("#append-msg").text("生成失敗、もう一度お試し下さい。");
-            $("#append-msg").attr("class", "text-danger p-1");
-          }
-        });
-      });
-    </script>
   </body>
+  <script>
+    $("#random_number").click(function () {
+      $.post("/random", "random=true").done(function (data) {
+        console.log(data);
+        if (data) {
+          $("#new-number").val(data);
+          $("#append-msg").text(
+            "生成完了! 同じグループメンバーにシェアしてね!"
+          );
+          $("#append-msg").attr("class", "text-success p-1");
+          $("#append-msg2").text(
+            "入室ボタンを押せば、番号入力いらずで入室できます!"
+          );
+          $("#append-msg2").attr("class", "text-success p-1");
+          $("#room").val(data);
+        } else {
+          $("#append-msg").text("生成失敗、もう一度お試し下さい。");
+          $("#append-msg").attr("class", "text-danger p-1");
+        }
+      });
+    });
+    $(window).on("load", function () {
+      if ($(window).width() < 768) {
+        $("#flex-right").addClass("mt-3");
+        $("#motto").attr("style", "position: absolute; right: 1rem; bottom:1em; font-weight: bold;");
+      } else {
+        $("#flex-right").removeClass("mt-3");
+        $("#motto").attr("style", "position: absolute; right: 1rem; font-weight: bold;");
+      }
+    });
+    $(window).on("resize", function () {
+      if ($(window).width() < 768) {
+        $("#flex-right").addClass("mt-3");
+        $("#motto").attr("style", "position: absolute; right: 1rem; bottom:1em; font-weight: bold;");
+      } else {
+        $("#flex-right").removeClass("mt-3");
+        $("#motto").attr("style", "position: absolute; right: 1rem; font-weight: bold;");
+      }
+    });
+  </script>
 </html>

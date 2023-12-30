@@ -1,25 +1,20 @@
 const express = require("express");
 const sqlite3 = require("sqlite3");
 const bcrypt = require("bcrypt");
+const multer = require("multer");
+const upload = multer();
 const router = express.Router();
 const authorization_js = require("../function/authorization"); ///外部ファイルの関数呼び出し
 const pswd_js = require("../function/pswd"); ///外部ファイルの関数呼び出し
 
-// サインアップページの表示
-router.get("/", (req, res) => {
-  // CSRF トークンを生成して追加
-  const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
-  ///CSRFトークンはsessionにも保存、画面に送りもする。
-  req.session.signup = csrfToken;
-  res.render("signup.ejs", { csrfToken: csrfToken, error: false });
-});
-
 // サインアップの POST リクエストの処理
-router.post("/", (req, res) => {
+router.post("/", upload.fields([]), (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   const received_csrfToken = req.body._csrf;
   const session_csrfToken = req.session.signup;
+  console.log(req.body);
+  console.log(username);
   ///フォームから受け取ってきたcsrfトークンとsessionのcsrfトークンが一致しているか確認
   if (received_csrfToken == session_csrfToken) {
     ///登録したいパスワードをハッシュ化
@@ -49,10 +44,9 @@ router.post("/", (req, res) => {
           const csrfToken = pswd_js.createPassword();
           req.session.signup = csrfToken;
           ///csrfトークンを生成し直して、もう一回新しいpswdにするよう画面に表示させる。
-          return res.render("signup.ejs", {
-            csrfToken: csrfToken,
-            error: true,
-          });
+
+          var return_list = [csrfToken, false];
+          res.send(return_list);
         } else {
           ///ユーザーネーム・パスワードが両方とも同じものがない場合
           // ユーザーの作成やデータベースへの保存などの処理を実装する
@@ -77,8 +71,10 @@ router.post("/", (req, res) => {
             db.close(); ///必ず閉める
           });
           ///適切に変更できたという表示をつけて、ログイン画面にリダイレクト。
-          req.session.signup_error = true;
-          return res.redirect("/login");
+          const csrfToken = pswd_js.createPassword();
+          req.session.signup = csrfToken;
+          var return_list = [csrfToken, true];
+          res.send(return_list);
         }
       }
     });
@@ -87,10 +83,8 @@ router.post("/", (req, res) => {
     ///csrfトークンを再生成して、もう一回やり直すように表示させる。
     const csrfToken = pswd_js.createPassword();
     req.session.signup = csrfToken;
-    return res.render("signup.ejs", {
-      csrfToken: csrfToken,
-      error: true,
-    });
+    var return_list = [csrfToken, false];
+    res.send(return_list);
   }
 });
 

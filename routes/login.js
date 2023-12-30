@@ -2,23 +2,33 @@ const express = require("express"); ///おまじない
 const bcrypt = require("bcrypt");
 const router = express.Router(); ///おまじない
 const sqlite3 = require("sqlite3"); ///loginされたときに、データベースを参照する必要があるため、sqlite3のモジュールをインポート
+const pswd_js = require("../function/pswd"); ///外部ファイルの関数呼び出し
 
 router.get("/", (req, res) => {
   ///sessionが生き残っている場合には、ログインショートカット
   if (req.session.username) {
     return res.redirect("/home");
   } else {
-    ///signupに成功した場合は、signupに成功した文章を表示させる
-    if (req.session.signup_error) {
-      req.session.signup_error = false;
-      return res.render("login.ejs", { error: false, error2: true });
-    }
+    // CSRF トークンを生成して追加
+    const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
+    ///CSRFトークンはsessionにも保存、画面に送りもする。
+    req.session.signup = csrfToken;
     ///通常のloginページへのアクセスの場合
-    return res.render("login.ejs", { error: false, error2: false });
+    return res.render("login.ejs", { csrfToken: csrfToken, error: 0 });
   }
 });
 
 router.post("/", (req, res) => {
+  const received_csrfToken = req.body._csrf;
+  const session_csrfToken = req.session.signup;
+  if (received_csrfToken != session_csrfToken) {
+    // CSRF トークンを生成して追加
+    const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
+    ///CSRFトークンはsessionにも保存、画面に送りもする。
+    req.session.signup = csrfToken;
+    ///通常のloginページへのアクセスの場合
+    return res.render("login.ejs", { csrfToken: csrfToken, error: 2 });
+  }
   ///ログインしてくるアクセスがあった場合、まずデータベースにアクセス。
   const db = new sqlite3.Database("DV.sqlite3");
   ///usersテーブルから、user一覧を取得
@@ -62,13 +72,12 @@ router.post("/", (req, res) => {
         req.session.user_authorization = authorization;
         return res.redirect("/home");
       } else {
+        // CSRF トークンを生成して追加
+        const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
+        ///CSRFトークンはsessionにも保存、画面に送りもする。
+        req.session.signup = csrfToken;
         ///それ以外の場合は、sessionを破壊して、loginページをお見舞い、不正な番号だと表示をだす。
-        req.session.destroy((err) => {
-          if (err) {
-            console.error(err);
-          }
-          return res.render("login.ejs", { error: true, error2: false });
-        });
+        return res.render("login.ejs", { csrfToken: csrfToken, error: 2 });
       }
     }
   });

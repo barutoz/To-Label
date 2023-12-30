@@ -112,6 +112,8 @@ const NGpop = [
   "ぶす",
 ];
 
+const color_list2 = ["primary", "warning", "info"];
+
 app.use(express.urlencoded({ extended: true })); ///おまじない
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -278,14 +280,16 @@ io.on("connection", (socket) => {
             );
             ///他の全てのユーザーのpermissionが1になっているか確認。
             if (!error) {
+              let user_list2;
               db.all(
-                "SELECT permission FROM " + authorization + "_userslist",
+                "SELECT * FROM " + authorization + "_userslist",
                 function (err, row) {
                   if (err) {
                     console.error(err.message);
                     db.close();
                   } else {
                     db.close();
+                    user_list2 = row;
                     for (let i = 0; i < row.length; i++) {
                       if (row[i]["permission"] == 0) {
                         var complete = false;
@@ -322,6 +326,31 @@ io.on("connection", (socket) => {
                                   }
                                 }
                               );
+                              for (let f = 0; f < user_list2.length; f++) {
+                                ///プレイヤーカラーを入れる
+                                if (f == 0) {
+                                  db.run(
+                                    "UPDATE " +
+                                      authorization +
+                                      "_userslist SET color='" +
+                                      color_list2[0] +
+                                      "' WHERE authorization='" +
+                                      user_list2[f]["authorization"] +
+                                      "'"
+                                  );
+                                } else {
+                                  db.run(
+                                    "UPDATE " +
+                                      authorization +
+                                      "_userslist SET color='" +
+                                      color_list2[f] +
+                                      "' WHERE authorization='" +
+                                      user_list2[f % 3]["authorization"] +
+                                      "'"
+                                  );
+                                }
+                              }
+
                               if (!error) {
                                 db.close(); ///dbは必ず閉める
                                 io.to(authorization).emit("next-before", true); ///部屋のユーザーに、3秒経過して、ページを遷移することを通知する。
@@ -559,6 +588,7 @@ io.on("connection", (socket) => {
             if (gehin == true) {
               io.to(socket.id).emit("receive_msg", true);
             } else {
+              let mycolor;
               let db = new sqlite3.Database("DV.sqlite3");
               ///部屋の識別暗号_userslistから、宛先のuserの識別暗号のusernameを取得する。
               db.all(
@@ -573,6 +603,7 @@ io.on("connection", (socket) => {
                     for (let i = 0; i < row.length; i++) {
                       if (row[i]["authorization"] == msg[0]) {
                         to_username = row[i]["user"];
+                        mycolor = row[i]["color"];
                         break;
                       }
                     }
@@ -589,7 +620,7 @@ io.on("connection", (socket) => {
                       db.run(
                         "INSERT INTO " +
                           authorization +
-                          "(player1, player2, msg, from_username, to_username, control) VALUES(?, ?, ?, ?, ?, ?)",
+                          "(player1, player2, msg, from_username, to_username, control, color) VALUES(?, ?, ?, ?, ?, ?, ?)",
                         [
                           socket.request.session.user_authorization,
                           msg[0],
@@ -597,6 +628,7 @@ io.on("connection", (socket) => {
                           socket.request.session.username,
                           to_username,
                           control,
+                          mycolor,
                         ],
                         (err) => {
                           if (err) {
@@ -616,6 +648,7 @@ io.on("connection", (socket) => {
                         socket.request.session.username,
                         to_username,
                         control,
+                        mycolor,
                       ]);
                     }
                   }
@@ -677,6 +710,7 @@ io.on("connection", (socket) => {
                       exist = true;
                       var to = row[i]["player2"];
                       var from = row[i]["player1"];
+                      var color = row[i]["color"];
                       break;
                     } else {
                       exist = false;
@@ -707,6 +741,7 @@ io.on("connection", (socket) => {
                         from,
                         msg[0],
                         msg[1],
+                        color,
                       ]);
                     }
                   }

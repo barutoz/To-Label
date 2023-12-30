@@ -148,6 +148,7 @@ router.get("/", (req, res) => {
           let msg_list = [];
           let your_msg_list = [];
           let other_msg_list = [];
+          let color; ///プレイヤーのカラーを取得
           db = new sqlite3.Database("DV.sqlite3");
           ///部屋の識別暗号_userslistテーブルから、部屋の参加者一覧を取得
           db.all(
@@ -163,6 +164,7 @@ router.get("/", (req, res) => {
                 ///この人が参加者一覧に存在することを確認
                 if (row[i]["authorization"] == req.session.user_authorization) {
                   redirecting = false;
+                  color = row[i]["color"];
                   ///加えて、この人を除く他の参加者リストも作成(他の参加者のusernameとuser識別暗号を取得)
                 } else {
                   other_users_user = row[i]["user"];
@@ -213,6 +215,7 @@ router.get("/", (req, res) => {
                           other_msg_list.push(msg_list[i]);
                         }
                       }
+                      console.log(color);
                       ///ゲーム画面に、他のユーザー一覧・your_msg_list・other_msg_list・この人のuser識別暗号・ゲームの経過時間・制限時間を埋め込んで送る。
                       return res.render("room.ejs", {
                         other_users: other_users,
@@ -221,6 +224,7 @@ router.get("/", (req, res) => {
                         self_authorization: req.session.user_authorization,
                         time: time,
                         original_time: original_time,
+                        color: color,
                       });
                       ///部屋がゲーム終了後のときは
                     } else if ((permission = 2)) {

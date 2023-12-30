@@ -1,316 +1,231 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <title>To-Label - room</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/uploads/To-Label.png" />
+    <title>To-Label</title>
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
       crossorigin="anonymous"
     />
     <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script
-      src="https://code.jquery.com/jquery-3.7.0.js"
-      integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/css/style.css" />
-    <script src="/send_url.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-
-    <!-- Japanese Font -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      /* For iPad mini and larger devices */
-
-      body {
-        font-family: "Noto Sans JP", sans-serif;
-        background-color: white;
-        color: black;
-      }
-
-      @media (min-width: 768px) {
-        .navbar-nav .dropdown-menu {
-          display: block;
-          position: static;
-          background-color: transparent;
-          border: 0;
-          box-shadow: none;
-        }
-
-        .navbar-nav .dropdown-item {
-          padding: 0.5rem 1rem;
-        }
-
-        .navbar-nav .nav-link {
-          display: inline;
-        }
-      }
-    </style>
   </head>
-  <body class="container" style="background-color: rgb(249, 245, 253)">
-    <!-- header -->
-
+  <body>
     <nav
-      class="navbar navbar-expand-lg navbar-dark bg-dark"
-      style="position: fixed; left: 0; top: 0; width: 100%; z-index: 100"
+      class="navbar bg-dark border-bottom border-bottom-dark navbar-expand-lg fixed-top"
+      style="font-size: 30px; font-weight: bold; width: 100%"
+      data-bs-theme="dark"
     >
-      <div class="container">
-        <a
-          class="navbar-brand"
-          href="/home"
-          style="
-            font-size: 3vh;
-            font-weight: bold;
-            position: relative;
-            left: -5%;
-          "
-          >To-Label</a
-        >
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#" style="font-size: 30px">To-Label</a>
         <button
           class="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
+          data-bs-target="#navbarTogglerDemo02"
+          aria-controls="navbarTogglerDemo02"
           aria-expanded="false"
           aria-label="Toggle navigation"
-          style="height: 4vh; width: 4vh; position: relative; right: -5%"
+          style="text-align: right"
         >
-          <span class="navbar-toggler-icon" style="font-size: 2vh"></span>
+          <span class="navbar-toggler-icon"></span>
         </button>
-        <div
-          class="collapse navbar-collapse justify-content-end"
-          style="margin: 2vh"
-          id="navbarNav"
-        >
-          <!-- Mobile version menu -->
-          <ul class="navbar-nav d-lg-none">
-            <li class="nav-item dropdown" style="height: 3vh">
-              <ul
-                class="dropdown-menu dropdown-menu-end bg-dark"
-                aria-labelledby="navbarDropdown"
-              >
-                <li>
-                  <a
-                    class="dropdown-item text-white"
-                    href="/history"
-                    style="font-size: 3vh; font-weight: bold"
-                    >History</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item text-white"
-                    href="/setting"
-                    style="font-size: 3vh; font-weight: bold"
-                    >Setting</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item text-white"
-                    href="/help"
-                    style="font-size: 3vh; font-weight: bold"
-                    >Help</a
-                  >
-                </li>
-                <li>
-                  <a
-                    class="dropdown-item text-white"
-                    href="/logout"
-                    style="font-size: 3vh; font-weight: bold"
-                    >Logout</a
-                  >
-                </li>
-              </ul>
-            </li>
-          </ul>
-          <!-- Desktop version menu -->
-          <ul class="navbar-nav d-none d-lg-flex">
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="/history"
-                style="font-size: 3vh; font-weight: bold"
-                >History</a
-              >
+              <a class="nav-link" href="/home">Home</a>
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="/setting"
-                style="font-size: 3vh; font-weight: bold"
-                >Setting</a
-              >
+              <a class="nav-link" href="/history">History</a>
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="/help"
-                style="font-size: 3vh; font-weight: bold"
-                >Help</a
-              >
+              <a class="nav-link" href="/setting">Setting</a>
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="/logout"
-                style="font-size: 3vh; font-weight: bold"
-                >Logout</a
-              >
+              <a class="nav-link" href="/help">help</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Logout</a>
             </li>
           </ul>
         </div>
       </div>
     </nav>
-
-    <main
-      class="container"
-      style="position: absolute; top: 18vh; width: 100%; z-index: -100"
-    >
-      <div class="card py-3 my-3">
-        <h3 class="text-center">レッテルを貼りましょう!</h3>
-        <p class="text-right" style="text-align: right" id="timer"></p>
-        <div class="progress mb-4">
-          <div
-            class="progress-bar"
-            role="progressbar"
-            style="width: 25%"
-            aria-valuenow="25"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            id="progress"
-          ></div>
+    <main style="position: absolute; top: 80px; right: 30px; left: 30px">
+      <div class="container mt-5">
+        <div class="row">
+          <div class="card bg-<%= color %>-subtle border border-<%= color %>">
+            <h3 class="text-center mt-4 text-<%= color %>-emphasis">
+              レッテルを貼りましょう!
+            </h3>
+            <p class="text-right me-5" style="text-align: right" id="timer"></p>
+            <div class="progress mb-4 mx-3">
+              <div
+                class="progress-bar bg-<%= color %> progress-bar-striped"
+                role="progressbar"
+                style="width: 25%"
+                aria-valuenow="25"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                id="progress"
+              ></div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <div class="row">
-            <div class="card mb-2">
-              <div class="card-body">
-                <textarea
-                  class="form-control"
-                  id="message"
-                  rows="3"
-                  style="resize: none"
-                  placeholder=""
-                ></textarea>
-                <div class="row mt-2">
-                  <div class="col 5">
-                    <select
-                      id="address"
-                      class="form-select"
-                      aria-label="Default select example"
-                    >
-                      <option selected value="origin" id="origin">宛先</option>
-                      <% other_users.forEach(element =>{%>
-                      <option value="<%= element.authorization %>">
-                        <%= element.user %>
-                      </option>
-                      <% }) %>
-                    </select>
-                  </div>
-                  <div class="col 4">
-                    <button
-                      class="btn btn-primary"
-                      style="text-align: right"
-                      id="msg_submit"
-                    >
-                      submit
-                    </button>
+        <div class="row mt-3" id="fortwo4">
+          <div class="col-12 col-md-6" id="fortwo2">
+            <div class="row">
+              <div
+                class="card mb-2 bg-<%= color %>-subtle border border-<%= color %>"
+                id="fortwo3"
+              >
+                <div class="card-body">
+                  <textarea
+                    class="form-control"
+                    id="message"
+                    rows="3"
+                    style="resize: none"
+                    placeholder=""
+                  ></textarea>
+                  <div class="row mt-2">
+                    <div class="col-6">
+                      <select
+                        id="address"
+                        class="form-select"
+                        aria-label="Default select example"
+                      >
+                        <option selected value="origin" id="origin">
+                          宛先
+                        </option>
+                        <% other_users.forEach(element =>{%>
+                        <option value="<%= element.authorization %>">
+                          <%= element.user %>
+                        </option>
+                        <% }) %>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <button
+                        class="btn btn-<%= color %>"
+                        style="text-align: right; font-weight: bold"
+                        id="msg_submit"
+                      >
+                        レッテルを貼る
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="card">
-              <div class="card-body">
-                <ul class="list-group" id="your_msg_list">
-                  <% your_msg_list.forEach(element=>{ %>
-                  <li class="list-group-item" name="<%= element.control %>">
-                    <div class="row">
-                      <div class="col-7 pb-0">
-                        <p>@<%= element.to_username %></p>
-                        <p name="msg"><%= element.msg %></p>
-                        <input
-                          type="text"
-                          class="form-control"
-                          placeholder="入力してね"
-                          value="<%= element.msg %>"
-                          name="<%= element.control %>"
-                        />
-                      </div>
-                      <div class="col-5 pb-0">
-                        <button
-                          type="button"
-                          class="btn btn-primary btn-sm"
-                          name="complete"
-                        >
-                          終了
-                        </button>
-                        <div
-                          class="btn-group"
-                          role="group"
-                          aria-label="Basic mixed styles example"
-                        >
+              <div
+                class="card mt-2 bg-<%= color %>-subtle border border-<%= color %>"
+                id="fortwo1"
+              >
+                <div class="card-body">
+                  <ul class="list-group" id="your_msg_list">
+                    <% your_msg_list.forEach(element=>{ %>
+                    <li
+                      class="list-group-item bg-<%= color %>-subtle border border-<%= color %>"
+                      name="<%= element.control %>"
+                    >
+                      <div class="row">
+                        <div class="col-6 pb-0">
+                          <p class="text-<%= color %>-emphasis">
+                            @<%= element.to_username %>
+                          </p>
+                          <p name="msg" class="text-<%= color %>-emphasis">
+                            <%= element.msg %>
+                          </p>
+                          <input
+                            type="text"
+                            class="form-control"
+                            placeholder="入力してね"
+                            value="<%= element.msg %>"
+                            name="<%= element.control %>"
+                          />
+                        </div>
+                        <div class="col-6 pb-0">
                           <button
                             type="button"
-                            class="btn btn-primary btn-sm"
-                            name="edit"
+                            class="btn btn-success btn-sm"
+                            name="complete"
+                            style="font-weight: bold"
                           >
-                            編集
+                            完了
                           </button>
-                          <button
-                            type="button"
-                            class="btn btn-secondary btn-sm"
-                            name="delete"
+                          <div
+                            class="btn-group"
+                            role="group"
+                            aria-label="Basic mixed styles example"
                           >
-                            削除
-                          </button>
+                            <button
+                              type="button"
+                              class="btn btn-success btn-sm"
+                              name="edit"
+                              style="font-weight: bold"
+                            >
+                              編集
+                            </button>
+                            <button
+                              type="button"
+                              class="btn btn-danger btn-sm"
+                              name="delete"
+                              style="font-weight: bold"
+                            >
+                              削除
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                  <% }) %>
-                </ul>
+                    </li>
+                    <% }) %>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="col">
-          <div class="card">
-            <div class="card-body" id="other_msg_list">
-              <% other_msg_list.forEach(element=>{%>
-              <div class="card" name="<%= element.control %>">
-                <div class="card-header">
-                  <div class="row">
-                    <div class="col">
-                      <p name="header">
-                        FROM:<%= element.from_username%> TO:<%=
-                        element.to_username %>
-                      </p>
-                    </div>
+          <div class="col-md-6 col-12 px-0" id="flex-right">
+            <div
+              class="card px-4 bg-<%= color %>-subtle border border-<%= color %>"
+            >
+              <div class="card-body px-0" id="other_msg_list">
+                <% other_msg_list.forEach(element=>{%>
+                <div
+                  class="card bg-<%= element.color %>-subtle border border-<%= element.color %>"
+                  name="<%= element.control %>"
+                >
+                  <div
+                    class="card-header bg-<%= element.color %> border border-<%= element.color %> text-white"
+                    style="font-weight: bold"
+                    name="header"
+                  >
+                    TO: <%= element.to_username %>
+                  </div>
+                  <div class="card-body text-<%= element.color %>-emphasis">
+                    <blockquote class="blockquote mb-0">
+                      <p><%= element.msg %></p>
+                      <footer class="blockquote-footer">
+                        <cite title="Source Title"
+                          >FROM: <%= element.from_username%></cite
+                        >
+                      </footer>
+                    </blockquote>
                   </div>
                 </div>
-                <div class="card-body">
-                  <p class="card-text text-center"><%= element.msg %></p>
-                </div>
+                <% }) %>
               </div>
-              <% }) %>
             </div>
           </div>
         </div>
@@ -385,9 +300,10 @@
     <input type="text" id="msg_pop" hidden />
     <input type="number" id="number_pop" hidden />
     <script>
-      var socket = io("http://" + location.hostname, {
-        path: "/To-Label",
-      });
+      ///var socket = io("http://" + location.hostname, {
+      ///path: "/To-Label",
+      ///});
+      var socket = io();
       let content;
       const self_authorization = "<%= self_authorization %>";
       let time = "<%= time %>";
@@ -395,8 +311,19 @@
       let progress;
       let timer1;
       let timer2;
+      const mycolor = "<%= color %>";
+      const others = "<%= other_users.length %>";
 
       $(window).on("load", function () {
+        if (others == "1") {
+          $("#flex-right").hide();
+          $("#fortwo3").insertBefore("#fortwo2");
+          $("#fortwo1").insertAfter("#fortwo3");
+          $("#flex-right").hide();
+          $("#fortwo3").addClass("col-md-6 col-12");
+          $("#fortwo1").addClass("col-md-6 col-12");
+          $("#fortwo2").attr("class", "");
+        }
         $("#your_msg_list")
           .find("input")
           .each(function () {
@@ -408,6 +335,7 @@
             $(this).hide();
           });
         if (Number(time) / 60 > 1) {
+          console.log(time);
           var min = String(Math.floor(Number(time) / 60));
           var sec = String(time - min * 60);
           $("#timer").text("残り " + min + ":" + sec);
@@ -431,6 +359,30 @@
           $("#progress").attr("style", "width: " + String(progress) + "%");
           $("#progress").text(String(progress) + "%");
         }, original_time / 100);
+        if ($(window).width() < 768) {
+          $("#flex-right").addClass("mt-3");
+        } else {
+          if (others == "1") {
+            $("#fortwo1").addClass("h-100");
+            $("#fortwo1").removeClass("mt-2");
+          }
+        }
+      });
+
+      $(window).on("resize", function () {
+        if ($(window).width() < 768) {
+          $("#flex-right").addClass("mt-3");
+          if (others == "1") {
+            $("#fortwo1").removeClass("h-100");
+            $("#fortwo1").addClass("mt-2");
+          }
+        } else {
+          $("#flex-right").removeClass("mt-3");
+          if (others == "1") {
+            $("#fortwo1").addClass("h-100");
+            $("#fortwo1").removeClass("mt-2");
+          }
+        }
       });
 
       $("#msg_submit").click(function () {
@@ -461,20 +413,28 @@
       });
 
       socket.on("receive_msg", function (msg) {
-        if (msg.length == 6) {
+        if (msg.length == 7) {
           if (msg[0] == self_authorization) {
             $("#your_msg_list").append(
-              '<li class="list-group-item" name="' +
+              '<li class="list-group-item bg-' +
+                msg[6] +
+                "-subtle border border-" +
+                msg[6] +
+                '" name="' +
                 msg[5] +
-                '"><div class="row"><div class="col-7 pb-0"><p>@' +
+                '"><div class="row"><div class="col-6 pb-0"><p class="text-' +
+                msg[6] +
+                '-emphasis">@' +
                 msg[4] +
-                '</p><p name="msg">' +
+                '</p><p name="msg" class="text-' +
+                msg[6] +
+                '-emphasis">' +
                 msg[2] +
                 '</p><input type="hidden" class="form-control" placeholder="入力してね" value=' +
                 msg[2] +
                 " name=" +
                 msg[5] +
-                '></div><div class="col-5 pb-0"><button type="button" class="btn btn-primary btn-sm" name="complete" style="display: none;">終了</button><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-primary btn-sm" name="edit">編集</button><button type="button" class="btn btn-secondary btn-sm" name="delete">削除</button></div></div></div></li>'
+                '></div><div class="col-6 pb-0"><button type="button" class="btn btn-success btn-sm" name="complete" style="display: none; font-weight:bold;">完了</button><div class="btn-group" role="group" aria-label="Basic mixed styles example"><button type="button" class="btn btn-success btn-sm" name="edit" style="font-weight:bold;">編集</button><button type="button" class="btn btn-danger btn-sm" name="delete" style="font-weight:bold;">削除</button></div></div></div></li>'
             );
             $("#NG_pop2").text("");
             $("#NG_pop").text("");
@@ -486,15 +446,25 @@
             msg[1] !== self_authorization
           ) {
             $("#other_msg_list").append(
-              '<div class="card" name=' +
+              '<div class="card bg-' +
+                msg[6] +
+                "-subtle border border-" +
+                msg[6] +
+                '" name="' +
                 msg[5] +
-                '><div class="card-header"><div class="row"><div class="col"><p name="header">FROM:' +
-                msg[3] +
-                " TO:" +
+                '"><div class="card-header bg-' +
+                msg[6] +
+                " border border-" +
+                msg[6] +
+                ' text-white" style="font-weight: bold" name="header">TO: ' +
                 msg[4] +
-                '</p></div></div></div><div class="card-body"><p class="card-text text-center">' +
+                '</div><div class="card-body text-' +
+                msg[6] +
+                '-emphasis"><blockquote class="blockquote mb-0"><p>' +
                 msg[2] +
-                "</p></div></div>"
+                '</p><footer class="blockquote-footer"><cite title="Source Title">FROM: ' +
+                msg[3] +
+                "</cite></footer></blockquote></div></div>"
             );
           }
         } else {
@@ -546,8 +516,32 @@
       $(document).on("click", "button[name='edit']", function () {
         $(this).parent().parent().parent().find("p[name='msg']").hide();
         $(this).parent().parent().parent().find("input").attr("type", "text");
+        var edit_control = $(this)
+          .parent()
+          .parent()
+          .parent()
+          .find("input")
+          .attr("name");
         $(this).parent().hide();
         $(this).parent().parent().find("button[name='complete']").show();
+        $(this)
+          .parent()
+          .parent()
+          .parent()
+          .parent()
+          .parent()
+          .find("li[name='" + edit_control + "']")
+          .attr(
+            "class",
+            "list-group-item bg-success-subtle border border-success"
+          );
+        $(this)
+          .parent()
+          .parent()
+          .parent()
+          .parent()
+          .find("p")
+          .attr("class", "text-success-emphasis");
       });
 
       $(document).on("click", "button[name='complete']", function () {
@@ -590,13 +584,18 @@
       });
 
       socket.on("receive_editmsg", function (msg) {
-        if (msg.length == 4) {
+        if (msg.length == 5) {
           if (msg[1] == self_authorization) {
             if ($("#your_msg_list").find("li[name='" + msg[3] + "']") !== 0) {
               $("#your_msg_list")
                 .find("li[name='" + msg[3] + "']")
                 .each(function () {
-                  $(this).find("li[name='" + msg[3] + "']");
+                  $(this).removeClass("bg-success-subtle border-success");
+                  $(this).addClass("bg-" + msg[4] + "-subtle border-" + msg[4]);
+                  $(this).find("p").removeClass("text-success-emphasis");
+                  $(this)
+                    .find("p")
+                    .addClass("text-" + msg[4] + "-emphasis");
                   $(this).find("p[name='msg']").text(msg[2]);
                   $(this).find("p[name='msg']").show();
                   $(this).find("input").attr("type", "hidden");
@@ -611,19 +610,35 @@
             if ($("#other_msg_list").find("div[name='" + msg[3] + "']") !== 0) {
               var header = $("#other_msg_list")
                 .find("div[name='" + msg[3] + "']")
-                .find("p[name='header']")
+                .find("div[name='header']")
+                .text();
+              var footer = $("#other_msg_list")
+                .find("div[name='" + msg[3] + "']")
+                .find("cite")
                 .text();
               $("#other_msg_list")
                 .find("div[name='" + msg[3] + "']")
                 .remove();
               $("#other_msg_list").append(
-                '<div class="card" name=' +
+                '<div class="card bg-' +
+                  msg[4] +
+                  "-subtle border border-" +
+                  msg[4] +
+                  '" name="' +
                   msg[3] +
-                  '><div class="card-header"><div class="row"><div class="col"><p name="header">' +
+                  '"><div class="card-header bg-' +
+                  msg[4] +
+                  " border border-" +
+                  msg[4] +
+                  ' text-white" style="font-weight: bold"><div class="row pb-0"><div class="col-2"><p class="mb-0"><span class="badge bg-success">編集</span></p></div><div class="col-10" name="header">' +
                   header +
-                  '</p></div><div class="col"><p><span class="badge bg-success">修正</span></p></div></div></div><div class="card-body"><p class="card-text text-center">' +
+                  '</div></div></div><div class="card-body text-' +
+                  msg[4] +
+                  '-emphasis"><blockquote class="blockquote mb-0"><p>' +
                   msg[2] +
-                  "</p></div></div>"
+                  '</p><footer class="blockquote-footer"><cite title="Source Title">' +
+                  footer +
+                  "</cite></footer></blockquote></div></div>"
               );
             }
           }
@@ -657,7 +672,7 @@
                 .find("div[name='" + msg[2] + "']")
                 .remove();
               $("#other_msg_list").append(
-                '<div class="card"><div class="card-header"><p><span class="badge bg-danger">削除</span></p></div><div class="card-body"><p class="card-text text-center">削除されました。</p></div></div>'
+                '<div class="card border border-danger bg-danger-subtle"><div class="card-header pb-0 text-white bg-danger border border-danger" style="font-weight: bold"><p>削除</p></div><div class="card-body"><blockquote class="blockquote mb-0 text-danger-emphasis"><p>このレッテルは削除されました。</p></blockquote></div></div>'
               );
             }
           }
