@@ -1,172 +1,480 @@
 <!DOCTYPE html>
-<html>
+<html lang="JP">
   <head>
-    <meta charset="utf-8" />
-    <title>To-Label - setting</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/uploads/To-Label.png" />
+    <title>To-Label</title>
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
+      integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
       crossorigin="anonymous"
     />
     <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script
-      src="https://code.jquery.com/jquery-3.7.0.js"
-      integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
   </head>
   <body>
-    <header>
-      <nav
-        class="navbar navbar-expand-lg navbar-dark bg-dark"
-        style="position: fixed; left: 0; top: 0; width: 100%; z-index: 100"
-      >
-        <div class="container">
-          <a
-            class="navbar-brand"
-            href="/home"
-            style="
-              font-size: 3vh;
-              font-weight: bold;
-              position: relative;
-              left: -5%;
-            "
-            >To-Label</a
-          >
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarNav"
-            aria-controls="navbarNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-            style="height: 4vh; width: 4vh; position: relative; right: -5%"
-          >
-            <span class="navbar-toggler-icon" style="font-size: 2vh"></span>
-          </button>
-          <div
-            class="collapse navbar-collapse justify-content-end"
-            style="margin: 2vh"
-            id="navbarNav"
-          >
-            <!-- Mobile version menu -->
-            <ul class="navbar-nav d-lg-none">
-              <li class="nav-item dropdown" style="height: 3vh">
-                <ul
-                  class="dropdown-menu dropdown-menu-end bg-dark"
-                  aria-labelledby="navbarDropdown"
-                >
-                  <li>
-                    <a
-                      class="dropdown-item text-white"
-                      href="/history"
-                      style="font-size: 3vh; font-weight: bold"
-                      >History</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item text-white"
-                      href="/setting"
-                      style="font-size: 3vh; font-weight: bold"
-                      >Setting</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item text-white"
-                      href="/help"
-                      style="font-size: 3vh; font-weight: bold"
-                      >Help</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      class="dropdown-item text-white"
-                      href="/logout"
-                      style="font-size: 3vh; font-weight: bold"
-                      >Logout</a
-                    >
-                  </li>
-                </ul>
-              </li>
-            </ul>
-            <!-- Desktop version menu -->
-            <ul class="navbar-nav d-none d-lg-flex">
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  href="/history"
-                  style="font-size: 3vh; font-weight: bold"
-                  >History</a
-                >
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  href="/setting"
-                  style="font-size: 3vh; font-weight: bold"
-                  >Setting</a
-                >
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  href="/help"
-                  style="font-size: 3vh; font-weight: bold"
-                  >Help</a
-                >
-              </li>
-              <li class="nav-item">
-                <a
-                  class="nav-link"
-                  href="/logout"
-                  style="font-size: 3vh; font-weight: bold"
-                  >Logout</a
-                >
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-    </header>
-    <main
-      style="position: absolute; top: 18vh; left: 5%; width: 90%; z-index: -100"
+    <nav
+      class="navbar bg-dark border-bottom border-bottom-dark navbar-expand-lg fixed-top"
+      style="font-size: 30px; font-weight: bold; width: 100%"
+      data-bs-theme="dark"
     >
-      <h2>Profile</h2>
-      <form action="/setting" method="POST">
-        <div>
-          <label for="olduserpass">Old User password:</label>
-          <input type="text" id="olduserpass" name="olduserpass" required />
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#" style="font-size: 30px">To-Label</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarTogglerDemo02"
+          aria-controls="navbarTogglerDemo02"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+          style="text-align: right"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="/home">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/history">History</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="/setting">Setting</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/help">help</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">Logout</a>
+            </li>
+          </ul>
         </div>
-        <div>
-          <label for="username">New Username:</label>
-          <input type="text" id="username" name="username" required />
+      </div>
+    </nav>
+    <main style="position: absolute; top: 80px; right: 30px; left: 30px">
+      <h2 class="mt-5" style="text-align: center">
+        ここでは、ユーザー名・パスワードの変更ができます!
+      </h2>
+      <div class="card mt-5">
+        <div class="card-header">
+          <h4 id="pswd_error"><%= pswd_error %></h4>
         </div>
-        <div>
-          <label for="password">New Password:</label>
-          <input type="password" id="password" name="password" required />
+        <div class="card-body">
+          <form action="javascript:setting()" id="form_setting" method="post">
+            <div class="mb-3">
+              <label for="olduserpass" class="form-label">Old Password</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="olduserpass"
+                  aria-describedby="olduserpass-comment"
+                  name="olduserpass"
+                  required
+                /><span
+                  style="
+                    position: absolute;
+                    z-index: 100;
+                    right: 3.5em;
+                    top: 0.25em;
+                  "
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-check text-success"
+                    viewBox="0 0 16 16"
+                    name="success"
+                  >
+                    <path
+                      d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"
+                    /></svg
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-exclamation-diamond text-danger"
+                    viewBox="0 0 16 16"
+                    name="warning"
+                  >
+                    <path
+                      d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435zm1.4.7a.495.495 0 0 0-.7 0L1.134 7.65a.495.495 0 0 0 0 .7l6.516 6.516a.495.495 0 0 0 .7 0l6.516-6.516a.495.495 0 0 0 0-.7L8.35 1.134z"
+                    />
+                    <path
+                      d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"
+                    /></svg
+                ></span>
+                <span class="input-group-text" onclick="open_password(0)"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-eye"
+                    viewBox="0 0 16 16"
+                    id="open0"
+                  >
+                    <path
+                      d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
+                    />
+                    <path
+                      d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"
+                    /></svg
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-eye-slash"
+                    viewBox="0 0 16 16"
+                    id="close0"
+                  >
+                    <path
+                      d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"
+                    />
+                    <path
+                      d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"
+                    />
+                    <path
+                      d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"
+                    /></svg
+                ></span>
+              </div>
+              <div id="olduserpass-comment" class="form-text">
+                今のパスワードを入力して下さい。
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="username" class="form-label">New Username</label>
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-control border rounded-end"
+                  id="username"
+                  name="username"
+                  aria-describedby="username-comment"
+                  required
+                /><span
+                  style="
+                    position: absolute;
+                    z-index: 100;
+                    right: 0.5em;
+                    top: 0.25em;
+                  "
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-check text-success"
+                    viewBox="0 0 16 16"
+                    name="success"
+                  >
+                    <path
+                      d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"
+                    /></svg
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-exclamation-diamond text-danger"
+                    viewBox="0 0 16 16"
+                    name="warning"
+                  >
+                    <path
+                      d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435zm1.4.7a.495.495 0 0 0-.7 0L1.134 7.65a.495.495 0 0 0 0 .7l6.516 6.516a.495.495 0 0 0 .7 0l6.516-6.516a.495.495 0 0 0 0-.7L8.35 1.134z"
+                    />
+                    <path
+                      d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"
+                    /></svg
+                ></span>
+              </div>
+
+              <div id="username-comment" class="form-text">
+                新しいユーザー名を入力して下さい。
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="username" class="form-label">New Password</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  name="password"
+                  aria-describedby="password-comment"
+                  required
+                />
+                <span class="input-group-text" onclick="open_password(1)"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-eye"
+                    viewBox="0 0 16 16"
+                    id="open1"
+                  >
+                    <path
+                      d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
+                    />
+                    <path
+                      d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"
+                    /></svg
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-eye-slash"
+                    viewBox="0 0 16 16"
+                    id="close1"
+                  >
+                    <path
+                      d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"
+                    />
+                    <path
+                      d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"
+                    />
+                    <path
+                      d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"
+                    /></svg
+                ></span>
+              </div>
+              <div id="password-comment" class="form-text">
+                新しいパスワードを入力して下さい。
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="check" class="form-label">check</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="check"
+                  name="check"
+                  aria-describedby="check-comment"
+                  required
+                /><span
+                  style="
+                    position: absolute;
+                    z-index: 100;
+                    right: 3.5em;
+                    top: 0.25em;
+                  "
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-check text-success"
+                    viewBox="0 0 16 16"
+                    name="success"
+                  >
+                    <path
+                      d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"
+                    /></svg
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-exclamation-diamond text-danger"
+                    viewBox="0 0 16 16"
+                    name="warning"
+                  >
+                    <path
+                      d="M6.95.435c.58-.58 1.52-.58 2.1 0l6.515 6.516c.58.58.58 1.519 0 2.098L9.05 15.565c-.58.58-1.519.58-2.098 0L.435 9.05a1.482 1.482 0 0 1 0-2.098L6.95.435zm1.4.7a.495.495 0 0 0-.7 0L1.134 7.65a.495.495 0 0 0 0 .7l6.516 6.516a.495.495 0 0 0 .7 0l6.516-6.516a.495.495 0 0 0 0-.7L8.35 1.134z"
+                    />
+                    <path
+                      d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"
+                    /></svg
+                ></span>
+
+                <span class="input-group-text" onclick="open_password(2)"
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-eye"
+                    viewBox="0 0 16 16"
+                    id="open2"
+                  >
+                    <path
+                      d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"
+                    />
+                    <path
+                      d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"
+                    /></svg
+                  ><svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    class="bi bi-eye-slash"
+                    viewBox="0 0 16 16"
+                    id="close2"
+                  >
+                    <path
+                      d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"
+                    />
+                    <path
+                      d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"
+                    />
+                    <path
+                      d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"
+                    /></svg
+                ></span>
+              </div>
+
+              <div id="check-comment" class="form-text">
+                新しいパスワードをもう一度入力して下さい。
+              </div>
+            </div>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              style="font-weight: bold"
+            >
+              変更を確定
+            </button>
+          </form>
         </div>
-        <button type="submit">Update</button>
-      </form>
-      <h4><%= pswd_error %></h4>
+      </div>
     </main>
   </body>
+  <script>
+    const color = "<%=color%>";
+
+    function open_password(x) {
+      if (x == 0) {
+        if ($("#olduserpass").attr("type") == "password") {
+          $("#olduserpass").attr("type", "text");
+          $("#close0").show();
+          $("#open0").hide();
+        } else if ($("#olduserpass").attr("type") == "text") {
+          $("#olduserpass").attr("type", "password");
+          $("#close0").hide();
+          $("#open0").show();
+        }
+      } else if (x == 1) {
+        if ($("#password").attr("type") == "password") {
+          $("#password").attr("type", "text");
+          $("#close1").show();
+          $("#open1").hide();
+        } else if ($("#password").attr("type") == "text") {
+          $("#password").attr("type", "password");
+          $("#close1").hide();
+          $("#open1").show();
+        }
+      } else if (x == 2) {
+        if ($("#check").attr("type") == "password") {
+          $("#check").attr("type", "text");
+          $("#close2").show();
+          $("#open2").hide();
+        } else if ($("#check").attr("type") == "text") {
+          $("#check").attr("type", "password");
+          $("#close2").hide();
+          $("#open2").show();
+        }
+      }
+    }
+
+    function setting() {
+      var olduserpass = $("#olduserpass").val();
+      var password = $("#password").val();
+      var username = $("#username").val();
+      var check = $("#check").val();
+      if (check == password) {
+        $("#form_setting").attr("action", "/setting").submit();
+      } else {
+        $("#pswd_error").text("再入力のパスワードが一致しません。");
+        $("#pswd_error").attr("class", "text-danger");
+        $("#check").addClass("border-danger");
+        $("#check-comment").text("再入力のパスワードが一致しません。");
+        $("#check-comment").addClass("text-danger");
+        $("#check").parent().find("svg[name='warning']").show();
+        document.getElementById("check").addEventListener("keyup", function () {
+          if ($("#check").val() == $("#password").val()) {
+            $("#check").removeClass("border-danger");
+            $("#check").addClass("border-success");
+            $("#check-comment").text("一致しました。");
+            $("#check-comment").removeClass("text-danger");
+            $("#check-comment").addClass("text-success");
+            $("#pswd_error").text("一致しました。再度送信してください。");
+            $("#pswd_error").attr("class", "text-success");
+            $("#check").parent().find("svg[name='success']").show();
+            $("#check").parent().find("svg[name='warning']").hide();
+          }
+        });
+      }
+    }
+
+    $(window).on("load", function () {
+      $("#close0").hide();
+      $("#close1").hide();
+      $("#close2").hide();
+      $("svg[name='success']").hide();
+      $("svg[name='warning']").hide();
+
+      if (color == "danger1") {
+        $("#pswd_error").attr("class", "text-danger");
+        $("#username").addClass("border-danger");
+        $("#username").parent().find("svg[name='warning']").show();
+        $("#username-comment").text(
+          "このユーザー名は使用できません。別のものにしてください。"
+        );
+        $("#username-comment").addClass("text-danger");
+        document
+          .getElementById("username")
+          .addEventListener("keypress", function () {
+            $("#username").removeClass("border-danger");
+            $("#username").addClass("border-success");
+            $("#username").parent().find("svg[name='warning']").hide();
+            $("#username").parent().find("svg[name='success']").show();
+            $("#username-comment").text("再送信してみてください。");
+            $("#username-comment").addClass("text-success");
+            $("#username-comment").removeClass("text-danger");
+          });
+      } else if (color == "danger2") {
+        $("#pswd_error").attr("class", "text-danger");
+        $("#olduserpass").addClass("border-danger");
+        $("#olduserpass").parent().find("svg[name='warning']").show();
+        $("#olduserpass-comment").text("今のパスワードが違います。");
+        $("#olduserpass-comment").addClass("text-danger");
+        document
+          .getElementById("olduserpass")
+          .addEventListener("keypress", function () {
+            $("#olduserpass").removeClass("border-danger");
+            $("#olduserpass").addClass("border-success");
+            $("#olduserpass").parent().find("svg[name='warning']").hide();
+            $("#olduserpass").parent().find("svg[name='success']").show();
+            $("#olduserpass-comment").text(
+              "正しく打ち込めたら、再送信してみてください。"
+            );
+            $("#olduserpass-comment").addClass("text-success");
+            $("#olduserpass-comment").removeClass("text-danger");
+          });
+      } else if (color == "success") {
+        $("#pswd_error").attr("class", "text-success");
+      }
+    });
+  </script>
 </html>

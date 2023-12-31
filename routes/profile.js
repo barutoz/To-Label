@@ -5,24 +5,29 @@ const router = express.Router();
 
 ///ここのページは、ユーザー名とパスワード書き換えページ
 router.get("/", (req, res) => {
+  let color;
   // セッションにログインの状態を確認
   if (req.session.userId && req.session.username) {
-    ///重複するusernameかつpswdが存在する場合、パスワードを変えるよう求める(詳しくは、post時の処理#1)
+    ///重複するusernameが存在する場合、ユーザー名を変えるよう求める(詳しくは、post時の処理#1)
     if (req.session.pswd_error) {
       req.session.pswd_error = false;
-      pswd_error = "このパスワードは使用できません。";
+      pswd_error = "このユーザー名は使用できません。別のものにしてください。";
+      color = "danger1";
       ///入力させた昔のpswdが違う場合は今のpswdが違う表示をだす(詳しくは、post時の処理#2)
     } else if (req.session.login_error) {
       req.session.login_error = false;
       pswd_error = "今のパスワードが違います。";
+      color = "danger2";
     } else if (req.session.setting_success) {
       req.session.setting_success = false;
       pswd_error = "新しいusernameとパスワードになりました。";
+      color = "success";
     } else {
-      pswd_error = "";
+      pswd_error = "ユーザー名・パスワードの変更";
+      color = "normal";
     }
     // ログイン済みの場合、ホームページを表示
-    res.render("profile.ejs", { pswd_error: pswd_error });
+    res.render("profile.ejs", { pswd_error: pswd_error, color: color });
   } else {
     // ログインしていない場合、ログインページにリダイレクト
     req.session.destroy((err) => {
@@ -70,16 +75,14 @@ router.post("/", (req, res) => {
       }
       ///データベース上に一致するものがあれば、書き換え処理を行う
       if (login) {
-        // その前に、同じユーザ名・パスワードがいる場合を防止する。(同じユーザー名はOK)
+        // その前に、同じユーザ名がいる場合を防止する。(同じユーザー名はOK)
         for (let i = 0; i < row.length; i++) {
           if (row[i]["username"] == newUsername) {
-            if (bcrypt.compareSync(newPassword, row[i]["password"])) {
-              var pswd_error = true;
-              break;
-            }
+            var pswd_error = true;
+            break;
           }
         }
-        ///同じユーザー名かつpswdがいる場合は、pswdを別のものにするよう、表示させる。#1
+        ///同じユーザー名かつpswdがいる場合は、ユーザー名を別のものにするよう、表示させる。#1
         if (pswd_error) {
           req.session.pswd_error = true;
           return res.redirect("/setting");
