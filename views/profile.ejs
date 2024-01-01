@@ -422,8 +422,43 @@
             $("#pswd_error").attr("class", "text-success");
             $("#check").parent().find("svg[name='success']").show();
             $("#check").parent().find("svg[name='warning']").hide();
+          } else {
+            $("#check").removeClass("border-success");
+            $("#check").addClass("border-danger");
+            $("#check-comment").text("再入力のパスワードが一致しません。");
+            $("#check-comment").addClass("text-danger");
+            $("#check-comment").removeClass("text-success");
+            $("#pswd_error").text("再入力のパスワードが一致しません。");
+            $("#pswd_error").attr("class", "text-danger");
+            $("#check").parent().find("svg[name='success']").hide();
+            $("#check").parent().find("svg[name='warning']").show();
           }
         });
+        document
+          .getElementById("password")
+          .addEventListener("keyup", function () {
+            if ($("#check").val() == $("#password").val()) {
+              $("#check").removeClass("border-danger");
+              $("#check").addClass("border-success");
+              $("#check-comment").text("一致しました。");
+              $("#check-comment").removeClass("text-danger");
+              $("#check-comment").addClass("text-success");
+              $("#pswd_error").text("一致しました。再度送信してください。");
+              $("#pswd_error").attr("class", "text-success");
+              $("#check").parent().find("svg[name='success']").show();
+              $("#check").parent().find("svg[name='warning']").hide();
+            } else {
+              $("#check").removeClass("border-success");
+              $("#check").addClass("border-danger");
+              $("#check-comment").text("再入力のパスワードが一致しません。");
+              $("#check-comment").addClass("text-danger");
+              $("#check-comment").removeClass("text-success");
+              $("#pswd_error").text("再入力のパスワードが一致しません。");
+              $("#pswd_error").attr("class", "text-danger");
+              $("#check").parent().find("svg[name='success']").hide();
+              $("#check").parent().find("svg[name='warning']").show();
+            }
+          });
       }
     }
 
