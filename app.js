@@ -10,6 +10,7 @@ const server = http.createServer(app);
 const io = require("socket.io")(server);
 const session = require("express-session");
 const cron = require("node-cron"); ///定期実行するための、モジュール
+const rate = require("express-rate-limit"); ///セキュリティ強化のために、同じIPアドレスからのリクエストの回数制限用のモジュール
 
 ///処理を飛ばす先のファイル(/routes以下)
 const introductionRouter = require("./routes/introduction");
@@ -41,8 +42,18 @@ sessionMiddleware = session({
   },
 });
 
+const limit = rate({
+  ///10分間で100回のアクセスが来た場合は、リクエストを処理しない。
+  windowMs: 10 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use(sessionMiddleware); ///sessionをexpressで使うと宣言
+app.use(limit);
 io.engine.use(sessionMiddleware); ///sessionをsocket.ioでも使うと宣言、これによりexpressとsocketioでsessionが共有される
+io.engine.use(limit);
 
 let time = []; ///sqliteのデータベースに入れるほど、長期間保存しておく必要のない、socketioで使われるデータをここに格納
 
