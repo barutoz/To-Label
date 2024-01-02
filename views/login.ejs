@@ -21,6 +21,7 @@
       integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
       crossorigin="anonymous"
     ></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lf-IhEpAAAAABkhB07-ITqnYh9R-voHKPUDhqXw"></script>
   </head>
   <body>
     <nav
@@ -93,7 +94,7 @@
         新しく作成する、IDとパスワードを入力:
       </div>
       <div class="alert alert-warning mt-3" role="alert" id="notification3">
-        このパスワードは登録されています。別のパスワードにして下さい。
+        このユーザー名は登録されています。別のユーザー名にして下さい。
       </div>
       <div class="alert alert-warning mt-3" role="alert" id="notification5">
         新規登録のデータ送信に失敗しました。もう一度試して下さい。
@@ -104,7 +105,7 @@
       <div class="card mb-4" id="login">
         <div class="card-header h3">Login Form:</div>
         <div class="card-body">
-          <form method="post" action="/login">
+          <form method="post" action="javascript:login()" id="login_form">
             <div>
               <label for="username" class="form-label">Username</label>
               <div class="input-group">
@@ -245,7 +246,9 @@
               name="_csrf"
               value="<%= csrfToken %>"
               class="csrf"
+              required
             />
+            <input type="hidden" name="recaptcha" id="recaptcha_login" />
             <button type="submit" class="btn btn-primary mt-4 w-100">
               ログイン
             </button>
@@ -411,6 +414,7 @@
               value="<%= csrfToken %>"
               class="csrf"
               id="csrf-signup"
+              required
             />
             <button type="submit" class="btn btn-primary mt-4 w-100">
               新規登録
@@ -449,6 +453,19 @@
       }
     }
 
+    function login() {
+      grecaptcha.ready(function () {
+        grecaptcha
+          .execute("6Lf-IhEpAAAAABkhB07-ITqnYh9R-voHKPUDhqXw", {
+            action: "submit",
+          })
+          .then(function (token) {
+            $("#recaptcha_login").value(token);
+            $("#login_form").attr("action", "/login").submit();
+          });
+      });
+    }
+
     function signup() {
       let username = $("#username-signup").val();
       let password = $("#password-signup").val();
@@ -463,51 +480,60 @@
       $("#check").parent().find("svg[name='warning']").hide();
       $("#check-comment").text("新しいパスワードをもう一度入力して下さい。");
       if (check == password) {
-        formData.append("username", username);
-        formData.append("password", password);
-        formData.append("_csrf", csrf);
-        $.ajax({
-          type: "POST",
-          url: "/signup",
-          data: formData,
-          processData: false,
-          contentType: false,
-          success: function (data) {
-            $(".csrf").val(data[0]);
-            if (data[1] == true) {
-              $("#signup").hide();
-              $("#notification0").hide();
-              $("#notification2").hide();
-              $("#notification1").show();
-              $("#notification4").hide();
-              $("#notification3").hide();
-              $("#notification5").hide();
-              $("#notification6").hide();
-              $("#login_selected").addClass("active");
-              $("#signup_selected").removeClass("active");
-              $("#login").show();
-              $("#username-signup").val("");
-              $("#password-signup").val("");
-              $("#check").val("");
-            } else {
-              $("#notification0").hide();
-              $("#notification2").hide();
-              $("#notification1").hide();
-              $("#notification4").hide();
-              $("#notification3").show();
-              $("#notification5").hide();
-              $("#notification6").hide();
-            }
-          },
-          error: function (request, status, err) {
-            $("#notification6").hide();
-            $("#notification5").show();
-            $("#notification4").hide();
-            $("#notification3").hide();
-            $("#notification2").hide();
-            $("#notification1").hide();
-            $("#notification0").hide();
-          },
+        grecaptcha.ready(function () {
+          grecaptcha
+            .execute("6Lf-IhEpAAAAABkhB07-ITqnYh9R-voHKPUDhqXw", {
+              action: "submit",
+            })
+            .then(function (token) {
+              formData.append("username", username);
+              formData.append("password", password);
+              formData.append("_csrf", csrf);
+              formData.append("recaptcha", token);
+              $.ajax({
+                type: "POST",
+                url: "/signup",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                  $(".csrf").val(data[0]);
+                  if (data[1] == true) {
+                    $("#signup").hide();
+                    $("#notification0").hide();
+                    $("#notification2").hide();
+                    $("#notification1").show();
+                    $("#notification4").hide();
+                    $("#notification3").hide();
+                    $("#notification5").hide();
+                    $("#notification6").hide();
+                    $("#login_selected").addClass("active");
+                    $("#signup_selected").removeClass("active");
+                    $("#login").show();
+                    $("#username-signup").val("");
+                    $("#password-signup").val("");
+                    $("#check").val("");
+                  } else {
+                    $("#notification0").hide();
+                    $("#notification2").hide();
+                    $("#notification1").hide();
+                    $("#notification4").hide();
+                    $("#notification3").show();
+                    $("#notification5").hide();
+                    $("#notification6").hide();
+                  }
+                },
+                error: function (request, status, err) {
+                  $("#notification6").hide();
+                  $("#notification5").show();
+                  $("#notification4").hide();
+                  $("#notification3").hide();
+                  $("#notification2").hide();
+                  $("#notification1").hide();
+                  $("#notification0").hide();
+                },
+              });
+            });
         });
       } else {
         $("#check").addClass("border-danger");
@@ -531,10 +557,12 @@
             $("#check").parent().find("svg[name='success']").show();
             $("#check").parent().find("svg[name='warning']").hide();
             $("#notification6").text("一致しました。再度送信してください。");
-            $("#notification6").attr("class","alert alert-success mt-3");
-          }else{
-            $("#notification6").text("再入力のパスワードが一致しません。もう一度打ち直して下さい。")
-            $("#notification6").attr("class","alert alert-danger mt-3");
+            $("#notification6").attr("class", "alert alert-success mt-3");
+          } else {
+            $("#notification6").text(
+              "再入力のパスワードが一致しません。もう一度打ち直して下さい。"
+            );
+            $("#notification6").attr("class", "alert alert-danger mt-3");
             $("#check").addClass("border-danger");
             $("#check-comment").text("再入力のパスワードが一致しません。");
             $("#check-comment").addClass("text-danger");
@@ -545,32 +573,35 @@
             $("#check").removeClass("border-success");
           }
         });
-        document.getElementById("password-signup").addEventListener("keyup", function () {
-          if ($("#check").val() == $("#password-signup").val()) {
-            $("#check").removeClass("border-danger");
-            $("#check").addClass("border-success");
-            $("#check-comment").text("一致しました。");
-            $("#check-comment").removeClass("text-danger");
-            $("#check-comment").addClass("text-success");
-            $("#check").parent().find("svg[name='success']").show();
-            $("#check").parent().find("svg[name='warning']").hide();
-            $("#notification6").text("一致しました。再度送信してください。");
-            $("#notification6").attr("class","alert alert-success mt-3");
-          }else{
-            $("#notification6").text("再入力のパスワードが一致しません。もう一度打ち直して下さい。")
-            $("#notification6").attr("class","alert alert-danger mt-3");
-            $("#check").addClass("border-danger");
-            $("#check-comment").text("再入力のパスワードが一致しません。");
-            $("#check-comment").addClass("text-danger");
-            $("#check").parent().find("svg[name='warning']").show();
-            $("#check-comment").removeClass("text-success");
-            $("#check").parent().find("svg[name='success']").hide();
-            $("#check-comment").text("再入力のパスワードが一致しません。");
-            $("#check").removeClass("border-success");
-          }
-        });
+        document
+          .getElementById("password-signup")
+          .addEventListener("keyup", function () {
+            if ($("#check").val() == $("#password-signup").val()) {
+              $("#check").removeClass("border-danger");
+              $("#check").addClass("border-success");
+              $("#check-comment").text("一致しました。");
+              $("#check-comment").removeClass("text-danger");
+              $("#check-comment").addClass("text-success");
+              $("#check").parent().find("svg[name='success']").show();
+              $("#check").parent().find("svg[name='warning']").hide();
+              $("#notification6").text("一致しました。再度送信してください。");
+              $("#notification6").attr("class", "alert alert-success mt-3");
+            } else {
+              $("#notification6").text(
+                "再入力のパスワードが一致しません。もう一度打ち直して下さい。"
+              );
+              $("#notification6").attr("class", "alert alert-danger mt-3");
+              $("#check").addClass("border-danger");
+              $("#check-comment").text("再入力のパスワードが一致しません。");
+              $("#check-comment").addClass("text-danger");
+              $("#check").parent().find("svg[name='warning']").show();
+              $("#check-comment").removeClass("text-success");
+              $("#check").parent().find("svg[name='success']").hide();
+              $("#check-comment").text("再入力のパスワードが一致しません。");
+              $("#check").removeClass("border-success");
+            }
+          });
       }
-
     }
     function open_password(x) {
       if (x == 1) {
@@ -628,28 +659,31 @@
         $("#password-comment").addClass("text-danger");
         $("#username").parent().find("svg[name='warning']").show();
         $("#password").parent().find("svg[name='warning']").show();
-        document.getElementById("username").addEventListener("keyup",function(){
-          $("#username").removeClass("border border-danger");
-          $("#username").addClass("border border-success");
-          $("#username-comment").removeClass("text-danger");
-          $("#username-comment").addClass("text-success");
-          $("#username-comment").text("もう一度ログインしてみてください。");
-          $("#username").parent().find("svg[name='warning']").hide();
-          $("#username").parent().find("svg[name='success']").show();
-        });
-        document.getElementById("password").addEventListener("keyup",function(){
-          $("#password").removeClass("border border-danger");
-          $("#password").addClass("border border-success");
-          $("#password-comment").removeClass("text-danger");
-          $("#password-comment").addClass("text-success");
-          $("#password-comment").text("もう一度ログインしてみてください。");
-          $("#password").parent().find("svg[name='warning']").hide();
-          $("#password").parent().find("svg[name='success']").show();
-        });
+        document
+          .getElementById("username")
+          .addEventListener("keyup", function () {
+            $("#username").removeClass("border border-danger");
+            $("#username").addClass("border border-success");
+            $("#username-comment").removeClass("text-danger");
+            $("#username-comment").addClass("text-success");
+            $("#username-comment").text("もう一度ログインしてみてください。");
+            $("#username").parent().find("svg[name='warning']").hide();
+            $("#username").parent().find("svg[name='success']").show();
+          });
+        document
+          .getElementById("password")
+          .addEventListener("keyup", function () {
+            $("#password").removeClass("border border-danger");
+            $("#password").addClass("border border-success");
+            $("#password-comment").removeClass("text-danger");
+            $("#password-comment").addClass("text-success");
+            $("#password-comment").text("もう一度ログインしてみてください。");
+            $("#password").parent().find("svg[name='warning']").hide();
+            $("#password").parent().find("svg[name='success']").show();
+          });
       } else {
         $("#notification0").show();
       }
-
     });
   </script>
 </html>
