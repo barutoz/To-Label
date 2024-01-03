@@ -21,7 +21,7 @@
       integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
       crossorigin="anonymous"
     ></script>
-    <script src="https://www.google.com/recaptcha/api.js?render=6LesykIpAAAAAKGDuAdIlF8h6XY7fo4DFNrnPQxd"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render="></script>
   </head>
   <body>
     <body2>
@@ -491,7 +491,7 @@
     function login() {
       grecaptcha.ready(function () {
         grecaptcha
-          .execute("6LesykIpAAAAAKGDuAdIlF8h6XY7fo4DFNrnPQxd", {
+          .execute("", {
             action: "submit",
           })
           .then(function (token) {

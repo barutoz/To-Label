@@ -35,7 +35,7 @@ router.post("/", (req, res) => {
 
   // 2. URLSearchParamsクラスのインスタンスを作成する
   const params = new URLSearchParams();
-  params.append("secret", "6LesykIpAAAAAGMKvjChXtsxHfeOOeg5n0SLaxlj");
+  params.append("secret", "");
   params.append("response", recapcha);
 
   // 3. Post通信をする
