@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="JP">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/uploads/To-Label.png" />
+    <link rel="icon" type="image/png" href="/To-Label.png" />
     <title>To-Label</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
@@ -30,7 +30,7 @@
       data-bs-theme="dark"
     >
       <div class="container-fluid">
-        <a class="navbar-brand" href="#" style="font-size: 30px">To-Label</a>
+        <a class="navbar-brand" href="/" style="font-size: 30px">To-Label</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -46,16 +46,13 @@
         <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="/home">Home</a>
+              <a class="nav-link" href="/">Home</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/history">History</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/setting">Setting</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/help">help</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/logout">Logout</a>
@@ -240,11 +237,11 @@
     >
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">下品!!! 卑猥!!!</h5>
+          <div class="modal-header bg-warning text-white">
+            <h2 class="modal-title" id="exampleModalLabel">下品!!! 卑猥!!!</h2>
             <button
               type="button"
-              class="btn-close"
+              class="btn-close btn-close-white"
               data-bs-dismiss="modal"
               aria-label="Close"
             ></button>
@@ -255,10 +252,16 @@
               type="button"
               class="btn btn-secondary"
               data-bs-dismiss="modal"
+              style="font-weight: bold"
             >
               送信しない
             </button>
-            <button type="button" class="btn btn-primary" id="resend_msg">
+            <button
+              type="button"
+              class="btn btn-warning"
+              style="font-weight: bold"
+              id="resend_msg"
+            >
               送信する
             </button>
           </div>
@@ -274,11 +277,11 @@
     >
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">下品!!! 卑猥!!!</h5>
+          <div class="modal-header bg-danger text-white">
+            <h2 class="modal-title" id="exampleModalLabel">下品!!! 卑猥!!!</h2>
             <button
               type="button"
-              class="btn-close"
+              class="btn-close btn-close-white"
               data-bs-dismiss="modal"
               aria-label="Close"
             ></button>
@@ -289,6 +292,7 @@
               type="button"
               class="btn btn-secondary"
               data-bs-dismiss="modal"
+              style="font-weight: bold"
             >
               Close
             </button>
@@ -394,14 +398,14 @@
           } else {
             content = [$("#address").val(), $("#message").val()];
             $("#NG_pop").text(
-              "あなたの入力した言葉" +
+              "あなたの入力した言葉 '" +
                 $("#message").val() +
-                "は下品で猥褻です。送信しないことを推奨します。"
+                "' は下品で猥褻です。送信しないことを推奨します。"
             );
             $("#NG_pop2").text(
-              "あなたの入力した言葉" +
+              "あなたの入力した言葉 '" +
                 $("#message").val() +
-                "は極度に下品で猥褻なものです。送信できません。"
+                "' は極度に下品で猥褻なものです。送信できません。"
             );
             $("#msg_pop").val($("#message").val());
             $("#address_pop").val($("#address").val());
@@ -555,14 +559,14 @@
         if (!(control == "")) {
           if (!(msg == "")) {
             $("#NG_pop").text(
-              "あなたの入力した言葉" +
+              "あなたの入力した言葉 '" +
                 msg +
-                "は下品で猥褻です。送信しないことを推奨します。"
+                "' は下品で猥褻です。送信しないことを推奨します。"
             );
             $("#NG_pop2").text(
-              "あなたの入力した言葉" +
+              "あなたの入力した言葉 '" +
                 msg +
-                "は極度に下品で猥褻なものです。送信できません。"
+                "' は極度に下品で猥褻なものです。送信できません。"
             );
             $("#msg_pop").val(msg);
             $("#address_pop").val(control);

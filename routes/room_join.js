@@ -20,13 +20,13 @@ router.get("/", (req, res) => {
   ///sessionに保存されているteamの通し番号が在るか確認。
   ///ない場合は、ホーム画面へリダイレクト
   if (req.session.team_number == false) {
-    return res.redirect("/home");
+    return res.redirect("/");
     ///ある場合
   } else {
     ///sessionに保存されている通し番号と、urlから取得された通し番号が一致しているか確認。
     ///一致していない場合はホーム画面へリダイレクト
     if (!(query_number[2] == req.session.team_number)) {
-      return res.redirect("/home");
+      return res.redirect("/");
     }
     let db = new sqlite3.Database("DV.sqlite3");
     ///room_numberテーブルにアクセスして、部屋の一覧を取得してくる。
@@ -179,7 +179,7 @@ router.get("/", (req, res) => {
               if (redirecting) {
                 ///もうこのセッションは締め切られている表示とともに、ホーム画面へリダイレクト
                 req.session.team_error2 = true;
-                return res.redirect("/home");
+                return res.redirect("/");
                 ///この人が参加者一覧にいるなら、
               } else {
                 db = new sqlite3.Database("DV.sqlite3");

@@ -7,7 +7,7 @@ const pswd_js = require("../function/pswd"); ///外部ファイルの関数呼�
 router.get("/", (req, res) => {
   ///sessionが生き残っている場合には、ログインショートカット
   if (req.session.username) {
-    return res.redirect("/home");
+    return res.redirect("/");
   } else {
     // CSRF トークンを生成して追加
     const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
@@ -98,7 +98,7 @@ router.post("/", (req, res) => {
             req.session.userId = login_id;
             req.session.username = req.body.username;
             req.session.user_authorization = authorization;
-            return res.redirect("/home");
+            return res.redirect("/");
           } else {
             // CSRF トークンを生成して追加
             const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成

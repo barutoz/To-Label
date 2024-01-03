@@ -18,7 +18,7 @@ router.post("/", (req, res) => {
   if (req.body.room.length !== 4) {
     ///4桁出ない場合はhome画面にリダイレクト
     req.session.team_error = true;
-    return res.redirect("/home");
+    return res.redirect("/");
   }
   let db = new sqlite3.Database("DV.sqlite3"); ///dbにアクセス
   ///room_numberテーブルから、すでに存在するroomの一覧を取得
@@ -44,7 +44,7 @@ router.post("/", (req, res) => {
       ///入力された部屋番号と一致する部屋が存在しない場合は、ホーム画面にリダイレクト。
       if (team_number == false) {
         req.session.team_error = true;
-        return res.redirect("/home");
+        return res.redirect("/");
       } else {
         ///部屋の状況が、プレイヤー募集中でなければ、(permission=0なければ)、つまり部屋が締め切られている場合、
         if (permission !== 0) {
@@ -71,7 +71,7 @@ router.post("/", (req, res) => {
               ///部屋の参加者リストに登録されていなければ、ホーム画面にリダイレクト。部屋は閉め切られているという表示をつけて。
               if (redirecting) {
                 req.session.team_error2 = true;
-                return res.redirect("/home");
+                return res.redirect("/");
                 ///登録されていれば、/room/{部屋の通し番号}にリダイレクト
                 ///そのときsessionには、参加しようとしているteamを更新
               } else {

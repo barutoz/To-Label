@@ -13,7 +13,6 @@ const cron = require("node-cron"); ///定期実行するための、モジュー
 const rate = require("express-rate-limit"); ///セキュリティ強化のために、同じIPアドレスからのリクエストの回数制限用のモジュール
 
 ///処理を飛ばす先のファイル(/routes以下)
-const introductionRouter = require("./routes/introduction");
 const loginRouter = require("./routes/login");
 const randomRouter = require("./routes/random");
 const room_joinRouter = require("./routes/room_join");
@@ -22,7 +21,6 @@ const signupRouter = require("./routes/signup");
 const homeRouter = require("./routes/home");
 const logoutRouter = require("./routes/logout");
 const profileRouter = require("./routes/profile");
-const helpRouter = require("./routes/help");
 const historyRouter = require("./routes/history");
 const internal_errorRouter = require("./routes/internal_error");
 const notfoundRouter = require("./routes/notfound");
@@ -866,13 +864,11 @@ io.on("connection", (socket) => {
 });
 
 ///ここに、ルーティングを書いていく。app.use(パス,ファイル先(最初のところで宣言したrequireのやつ))
-app.use("/", introductionRouter);
-app.use("/home", homeRouter);
+app.use("/", homeRouter);
 app.use("/internal_error", internal_errorRouter);
 app.use("/login", loginRouter);
 app.use("/logout", logoutRouter);
 app.use("/setting", profileRouter);
-app.use("/help", helpRouter);
 app.use("/random", randomRouter);
 app.use("/room", roomRouter);
 app.use("/room/*", room_joinRouter);
