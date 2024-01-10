@@ -54,9 +54,6 @@
               <a class="nav-link" href="/setting">Setting</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="/help">help</a>
-            </li>
-            <li class="nav-item">
               <a class="nav-link" href="/logout">Logout</a>
             </li>
           </ul>
@@ -64,35 +61,193 @@
       </div>
     </nav>
     <main style="position: absolute; top: 80px; right: 30px; left: 30px">
-        <h3 class="mt-4"><%= username %>さんのレッテル履歴</h3>
-        <div>
-          <% if (exists){ %> <% list.forEach(element => { %> 
-          <div class="mb-4">
-            <p><%= element[0]["time"] %></p>
-            <p>ルーム<%= element[0]["room_number"] %></p>
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">誰から?</th>
-                  <th scope="col">レッテル</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% for(i=0; i<element.length; i++) { %>
-                <tr>
-                  <th scope="row"><%= i+1 %></th>
-                  <td><%= element[i]["from_username"] %></td>
-                  <td><%= element[i]["msg"] %></td>
-                </tr>
-                <% }; %>
-              </tbody>
-            </table>
+      <div class="mt-4 border-bottom border-success border-3 text-success"><h3><%= username %>さんのレッテル履歴</h3></div>
+      <div class="mt-4">
+      <% if (exists){ %> 
+      <% if(list.length == 1){ %>
+        <div class="card mb-4 rounded-1">
+          <div class="border-start border-5 rounded-1 h-100" name="border">
+            <div class="card-header">
+              <div class="row">
+                <div class="col-12 col-md-6"><p class="mb-0"><%= list[0][0]["time"] %></p></div>
+                <div class="col-12 col-md-6"><p class="mb-0">ルーム<%= list[0][0]["room_number"] %></p></div>
+              </div>
+            </div>
+            <div class="card-body">   
+              <table class="table table-striped" style="text-align: center;">
+                <thead>
+                  <tr>
+                    <th scope="col">誰から?</th>
+                    <th scope="col">レッテル</th>
+                  </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                <% for(i=0; i<list[0].length; i++) { %>
+                  <tr class="table-<%= list[0][i]["color"] %>">
+                    <td style="width: 30%;"><%= list[0][i]["from_username"] %></td>
+                    <td style="width: 70%;"><%= list[0][i]["msg"] %></td>
+                  </tr>
+                  <% }; %>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <% }); %>
+        </div>
           <% }else{ %>
-          <h3>あなたには、まだレッテルが貼られてません。ゲームに参加しよう!</h3>
+          <% for(let x=0; x<list.length; x++){ %> 
+          <% if(x==list.length-1){ %> 
+            <% if(x%2 == 0){ %>
+              <div class="row">
+              <div class="col-12 col-md-6">
+                <div class="card mb-4 rounded-1">
+                  <div class="border-start border-5 rounded-1 h-100" name="border">
+                    <div class="card-header">
+                      <div class="row">
+                        <div class="col-12 col-md-6"><p class="mb-0"><%= list[x][0]["time"] %></p></div>
+                        <div class="col-12 col-md-6"><p class="mb-0">ルーム<%= list[x][0]["room_number"] %></p></div>
+                      </div>
+                    </div>
+                    <div class="card-body">   
+                      <table class="table table-striped" style="text-align: center;">
+                        <thead>
+                          <tr>
+                            <th scope="col">誰から?</th>
+                            <th scope="col">レッテル</th>
+                          </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                        <% for(i=0; i<list[x].length; i++) { %>
+                          <tr class="table-<%= list[x][i]["color"] %>">
+                            <td style="width: 30%;"><%= list[x][i]["from_username"] %></td>
+                            <td style="width: 70%;"><%= list[x][i]["msg"] %></td>
+                          </tr>
+                          <% }; %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div></div>
+            <%}else{%>
+              <div class="col-12 col-md-6">
+                <div class="card mb-4 rounded-1">
+                  <div class="border-start border-5 rounded-1 h-100" name="border">
+                    <div class="card-header">
+                      <div class="row">
+                        <div class="col-12 col-md-6"><p class="mb-0"><%= list[x][0]["time"] %></p></div>
+                        <div class="col-12 col-md-6"><p class="mb-0">ルーム<%= list[x][0]["room_number"] %></p></div>
+                      </div>
+                    </div>
+                    <div class="card-body">   
+                      <table class="table table-striped" style="text-align: center;">
+                        <thead>
+                          <tr>
+                            <th scope="col">誰から?</th>
+                            <th scope="col">レッテル</th>
+                          </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                        <% for(i=0; i<list[x].length; i++) { %>
+                          <tr class="table-<%= list[x][i]["color"] %>">
+                            <td style="width: 30%;"><%= list[x][i]["from_username"] %></td>
+                            <td style="width: 70%;"><%= list[x][i]["msg"] %></td>
+                          </tr>
+                          <% }; %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div></div>
+              <% } %>
+          <% }else{ %> 
+            <% if(x%2 == 0){ %>
+              <div class="row">
+              <div class="col-12 col-md-6">
+                <div class="card mb-4 rounded-1">
+                  <div class="border-start border-5 rounded-1 h-100" name="border">
+                    <div class="card-header">
+                      <div class="row">
+                        <div class="col-12 col-md-6"><p class="mb-0"><%= list[x][0]["time"] %></p></div>
+                        <div class="col-12 col-md-6"><p class="mb-0">ルーム<%= list[x][0]["room_number"] %></p></div>
+                      </div>
+                    </div>
+                    <div class="card-body">   
+                      <table class="table table-striped" style="text-align: center;">
+                        <thead>
+                          <tr>
+                            <th scope="col">誰から?</th>
+                            <th scope="col">レッテル</th>
+                          </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                        <% for(i=0; i<list[x].length; i++) { %>
+                          <tr class="table-<%= list[x][i]["color"] %>">
+                            <td style="width: 30%;"><%= list[x][i]["from_username"] %></td>
+                            <td style="width: 70%;"><%= list[x][i]["msg"] %></td>
+                          </tr>
+                          <% }; %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <%}else{%>
+              <div class="col-12 col-md-6">
+                <div class="card mb-4 rounded-1">
+                  <div class="border-start border-5 rounded-1 h-100" name="border">
+                    <div class="card-header">
+                      <div class="row">
+                        <div class="col-12 col-md-6"><p class="mb-0"><%= list[x][0]["time"] %></p></div>
+                        <div class="col-12 col-md-6"><p class="mb-0">ルーム<%= list[x][0]["room_number"] %></p></div>
+                      </div>
+                    </div>
+                    <div class="card-body">   
+                      <table class="table table-striped" style="text-align: center;">
+                        <thead>
+                          <tr>
+                            <th scope="col">誰から?</th>
+                            <th scope="col">レッテル</th>
+                          </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                        <% for(i=0; i<list[x].length; i++) { %>
+                          <tr class="table-<%= list[x][i]["color"] %>">
+                            <td style="width: 30%;"><%= list[x][i]["from_username"] %></td>
+                            <td style="width: 70%;"><%= list[x][i]["msg"] %></td>
+                          </tr>
+                          <% }; %>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div></div>
+              <% } %>
           <% } %>
-        </div></main>
+            <% } %>
+          <% }; %>
+          <% }else{ %>
+            <div>
+          <h3>あなたには、まだレッテルが貼られてません。ゲームに参加しよう!</h3>
+          </div>
+          <% } %>
+    </main>
   </body>
+  <script>
+    const color=["primary","danger","warning","success","info"]
+    $(window).on("load",function(){
+      $("div[name='border']").each(function(){
+        var randomIndex = Math.floor(Math.random() * color.length);
+        $(this).addClass("border-"+color[randomIndex]);
+        $(this).find(".card-header").addClass("border-"+color[randomIndex]);
+        $(this).find(".card-header").addClass("text-"+color[randomIndex]+"-emphasis");
+        $(this).find(".card-header").addClass("bg-"+color[randomIndex]+"-subtle");
+        $(this).parent().addClass("text-"+color[randomIndex]+"-emphasis");
+        $(this).parent().addClass("border-"+color[randomIndex]);
+        $(this).find("tbody").addClass("border-"+color[randomIndex]);
+      })
+    })
+  </script>
 </html>

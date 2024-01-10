@@ -497,13 +497,14 @@ io.on("connection", (socket) => {
                             for (let i = 0; i < row.length; i++) {
                               ///部屋番号とゲームの終了時間、差出人のusername、レッテルの中身、宛名ユーザーの識別暗号を保存
                               db.run(
-                                "INSERT INTO profile_msg (from_username,msg,to_user_authorization,time,room_number) VALUES(?,?,?,?,?)",
+                                "INSERT INTO profile_msg (from_username,msg,to_user_authorization,time,room_number,color) VALUES(?,?,?,?,?,?)",
                                 [
                                   row[i]["from_username"],
                                   row[i]["msg"],
                                   row[i]["player2"],
                                   date,
                                   room_number,
+                                  row[i]["color"],
                                 ],
                                 (err) => {
                                   if (err) {

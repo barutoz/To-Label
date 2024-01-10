@@ -141,6 +141,7 @@ router.get("/", (req, res) => {
           });
           ///部屋の状況がプレイヤー募集中でない場合は
         } else {
+          let user_list;
           let other_users = [];
           let other_users_authorization;
           let other_users_user;
@@ -160,6 +161,7 @@ router.get("/", (req, res) => {
                 return res.render("error.ejs", { code: "500" });
               }
               db.close(); ///必ず閉める
+              user_list = row;
               for (let i = 0; i < row.length; i++) {
                 ///この人が参加者一覧に存在することを確認
                 if (row[i]["authorization"] == req.session.user_authorization) {
@@ -169,9 +171,11 @@ router.get("/", (req, res) => {
                 } else {
                   other_users_user = row[i]["user"];
                   other_users_authorization = row[i]["authorization"];
+                  other_users_color = row[i]["color"];
                   other_users.push({
                     user: other_users_user,
                     authorization: other_users_authorization,
+                    color: other_users_color,
                   });
                 }
               }
@@ -215,7 +219,7 @@ router.get("/", (req, res) => {
                           other_msg_list.push(msg_list[i]);
                         }
                       }
-                      console.log(color);
+
                       ///ゲーム画面に、他のユーザー一覧・your_msg_list・other_msg_list・この人のuser識別暗号・ゲームの経過時間・制限時間を埋め込んで送る。
                       return res.render("room.ejs", {
                         other_users: other_users,
@@ -235,6 +239,15 @@ router.get("/", (req, res) => {
                           req.session.user_authorization
                         ) {
                           ///your_msg_listにそのやりとりを入れる
+                          for (let y = 0; y < other_users.length; y++) {
+                            if (
+                              msg_list[i]["player1"] ==
+                              other_users[y]["authorization"]
+                            ) {
+                              msg_list[i]["color"] = other_users[y]["color"];
+                              break;
+                            }
+                          }
                           your_msg_list.push(msg_list[i]);
                         }
                       }
@@ -246,17 +259,30 @@ router.get("/", (req, res) => {
                             msg_list[i]["player2"] ==
                             other_users[x]["authorization"]
                           ) {
+                            for (let k = 0; k < user_list.length; k++) {
+                              if (
+                                msg_list[i]["player1"] ==
+                                user_list[k]["authorization"]
+                              ) {
+                                msg_list[i]["color"] = user_list[k]["color"];
+                                break;
+                              }
+                            }
+
                             msg_for_particular_player.push(msg_list[i]);
                           }
                         }
                         other_msg_list.push([
                           other_users[x]["user"],
+                          other_users[x]["color"],
                           msg_for_particular_player,
                         ]);
                       } ///ゲームの結果画面に、your_msg_listとこの人のusernameを埋め込んで送る。
+
                       return res.render("result.ejs", {
                         your_msg_list: your_msg_list,
                         username: req.session.username,
+                        color: color,
                         other_msg_list: other_msg_list,
                         other_users: other_users,
                       });

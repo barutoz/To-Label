@@ -25,6 +25,7 @@ router.get("/", (req, res) => {
               msg: row[i]["msg"],
               time: row[i]["time"],
               room_number: row[i]["room_number"],
+              color: row[i]["color"],
             });
           }
         }
@@ -47,8 +48,8 @@ router.get("/", (req, res) => {
           ///レッテルの数が2こ以上の場合は、過去のレッテルをレッテルをもらった時間順に並び替え
         } else {
           your_list.sort(function (a, b) {
-            if (a.time < b.time) return -1;
-            if (a.time > b.time) return 1;
+            if (a.time < b.time) return 1;
+            if (a.time > b.time) return -1;
             return 0;
           });
           ///レッテルの数が2つの場合
@@ -125,6 +126,9 @@ router.get("/", (req, res) => {
                 }
               }
             }
+            console.log(newlist);
+            console.log(newlist.length);
+            console.log(newlist[0][0]);
             return res.render("history.ejs", {
               username: username,
               exists: true,

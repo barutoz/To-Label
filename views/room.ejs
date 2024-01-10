@@ -134,15 +134,18 @@
                   <ul class="list-group" id="your_msg_list">
                     <% your_msg_list.forEach(element=>{ %>
                     <li
-                      class="list-group-item bg-<%= color %>-subtle border border-<%= color %>"
+                      class="list-group-item bg-<%= element.color %>-subtle border border-<%= element.color %>"
                       name="<%= element.control %>"
                     >
                       <div class="row">
                         <div class="col-6 pb-0">
-                          <p class="text-<%= color %>-emphasis">
+                          <p class="text-<%= element.color %>-emphasis">
                             @<%= element.to_username %>
                           </p>
-                          <p name="msg" class="text-<%= color %>-emphasis">
+                          <p
+                            name="msg"
+                            class="text-<%= element.color %>-emphasis"
+                          >
                             <%= element.msg %>
                           </p>
                           <input
