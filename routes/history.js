@@ -25,7 +25,7 @@ router.get("/", (req, res) => {
               msg: row[i]["msg"],
               time: row[i]["time"],
               room_number: row[i]["room_number"],
-              color: row[i]["color"],
+              color: row[i]["from_color"],
             });
           }
         }

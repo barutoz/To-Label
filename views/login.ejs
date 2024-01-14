@@ -21,7 +21,16 @@
       integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
       crossorigin="anonymous"
     ></script>
-    <script src="https://www.google.com/recaptcha/api.js?render="></script>
+    <script
+      src="https://www.google.com/recaptcha/api.js?render=6LesykIpAAAAAKGDuAdIlF8h6XY7fo4DFNrnPQxd"
+      async
+      defer
+    ></script>
+    <style>
+      .grecaptcha-badge {
+        z-index: 10000;
+      }
+    </style>
   </head>
   <body>
     <body2>
@@ -103,6 +112,11 @@
         <div class="alert alert-danger mt-3" role="alert" id="notification6">
           再入力のパスワードが一致しません。もう一度打ち直して下さい。
         </div>
+        <% if(error==4){ %>
+        <div class="alert alert-danger mt-3" role="alert" id="notification7">
+          Lineでログインに成功しましたログインに失敗しました。もう一度やり直してみてください。
+        </div>
+        <% } %>
         <div class="card mb-4" id="login">
           <div class="card-header h3">Login Form:</div>
           <div class="card-body">
@@ -253,6 +267,53 @@
               <button type="submit" class="btn btn-primary mt-4 w-100">
                 ログイン
               </button>
+              <div
+                class="mt-3"
+                style="
+                  margin: auto;
+                  background-color: #06c755;
+                  display: flex;
+                  width: 180px;
+                  position: relative;
+                  border-radius: 8px;
+                "
+              >
+                <a href="/line_login" style="text-decoration: none">
+                  <div
+                    style="
+                      background-color: rgb(0, 0, 0, 0);
+                      display: flex;
+                      width: 180px;
+                      position: relative;
+                      border-radius: 8px;
+                    "
+                    class="mouse"
+                  >
+                    <img src="line_132.png" style="width: 40px" />
+                    <div
+                      style="
+                        border-left: 2px solid rgb(0, 0, 0, 0.08);
+                        display: table;
+                        vertical-align: middle;
+                      "
+                    >
+                      <p
+                        style="
+                          display: table-cell;
+                          vertical-align: middle;
+                          padding: 0;
+                          color: white;
+                          padding-left: 20px;
+                          padding-right: 20px;
+                          font-weight: bold;
+                        "
+                      >
+                        LINEでログイン
+                      </p>
+                    </div>
+                  </div></a
+                >
+              </div>
             </form>
           </div>
         </div>
@@ -424,11 +485,69 @@
               >
                 新規登録
               </button>
+              <div
+                class="mt-3"
+                style="
+                  margin: auto;
+                  background-color: #06c755;
+                  display: flex;
+                  width: 180px;
+                  position: relative;
+                  border-radius: 8px;
+                "
+              >
+                <a href="/line_login" style="text-decoration: none">
+                  <div
+                    style="
+                      background-color: rgb(0, 0, 0, 0);
+                      display: flex;
+                      width: 180px;
+                      position: relative;
+                      border-radius: 8px;
+                    "
+                    class="mouse"
+                  >
+                    <img src="line_132.png" style="width: 40px" />
+                    <div
+                      style="
+                        border-left: 2px solid rgb(0, 0, 0, 0.08);
+                        display: table;
+                        vertical-align: middle;
+                      "
+                    >
+                      <p
+                        style="
+                          display: table-cell;
+                          vertical-align: middle;
+                          padding: 0;
+                          color: white;
+                          padding-left: 20px;
+                          padding-right: 20px;
+                          font-weight: bold;
+                        "
+                      >
+                        LINEでログイン
+                      </p>
+                    </div>
+                  </div></a
+                >
+              </div>
             </form>
           </div>
         </div>
-      </main></body2
-    >
+        <form action="/line_login/signup" method="post" id="line_form">
+          <input
+            type="hidden"
+            name="_csrf"
+            value="<%= csrfToken %>"
+            class="csrf"
+            id="csrf-line"
+            required
+          />
+          <input type="hidden" name="recaptcha" id="recaptcha_line" required />
+          <input type="hidden" name="username" id="line_username" required />
+        </form></main
+    ></body2>
     <div
       class="card border-5 border-dark rounded-5"
       id="loading"
@@ -458,6 +577,72 @@
         <p class="card-text" style="text-align: center">少々お待ちください</p>
       </div>
     </div>
+    <% if(line_signup){ %>
+    <div
+      class="modal fade"
+      id="modal_recommend"
+      tabindex="-1"
+      aria-labelledby="exampleModalLabel"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div
+            class="modal-header text-white"
+            style="background-color: #06c755"
+          >
+            <h3 class="modal-title" id="exampleModalLabel">usernameの設定</h3>
+          </div>
+          <div class="modal-body">
+            <% if(line_error==1){ %>
+            <h5 class="text-danger" style="text-align: center">
+              処理に失敗しました。<br />再度やり直してください。
+            </h5>
+            <% }else if(line_error==2){ %>
+            <h5 class="text-danger" style="text-align: center">
+              このusernameは存在します。<br />
+              別のusernameにしてください。
+            </h5>
+            <% }else{ %>
+            <h5 style="text-align: center">
+              Lineでログインに成功しました!<br />
+              あとはusernameを設定すれば、新規登録されます。
+            </h5>
+            <% } %>
+            <label for="inputPassword5" class="form-label mt-3">Username</label
+            ><% if(line_error==1 || line_error==2){ %>
+            <input
+              type="text"
+              id="linepassword"
+              class="form-control border-danger"
+              aria-labelledby="linepasswordcomment"
+            /><% }else{ %>
+            <input
+              type="text"
+              id="linepassword"
+              class="form-control"
+              aria-labelledby="linepasswordcomment"
+            /><% } %>
+            <div id="linepasswordcomment" class="form-text">
+              ここで設定したusernameはTo-Label内での、あなたの表示名になります。
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-success"
+              style="font-weight: bold"
+              id="resend_msg"
+            >
+              新規登録
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
   </body>
   <script>
     function selected(x) {
@@ -472,12 +657,14 @@
         $("#notification3").hide();
         $("#notification5").hide();
         $("#notification6").hide();
+        $("#notification7").hide();
         $("#notification4").show();
       } else {
         $("#login_selected").addClass("active");
         $("#signup_selected").removeClass("active");
         $("#signup").hide();
         $("#login").show();
+        $("#notification7").hide();
         $("#notification6").hide();
         $("#notification5").hide();
         $("#notification4").hide();
@@ -491,7 +678,7 @@
     function login() {
       grecaptcha.ready(function () {
         grecaptcha
-          .execute("", {
+          .execute("6LesykIpAAAAAKGDuAdIlF8h6XY7fo4DFNrnPQxd", {
             action: "submit",
           })
           .then(function (token) {
@@ -548,6 +735,7 @@
                     $("#notification3").hide();
                     $("#notification5").hide();
                     $("#notification6").hide();
+                    $("#notification7").hide();
                     $("#login_selected").addClass("active");
                     $("#signup_selected").removeClass("active");
                     $("#login").show();
@@ -562,6 +750,7 @@
                     $("#notification3").show();
                     $("#notification5").hide();
                     $("#notification6").hide();
+                    $("#notification7").hide();
                   } else {
                     $("#notification0").hide();
                     $("#notification2").hide();
@@ -570,12 +759,14 @@
                     $("#notification5").show();
                     $("#notification3").hide();
                     $("#notification6").hide();
+                    $("#notification7").hide();
                   }
                 },
                 error: function (request, status, err) {
                   $("#signup-btn").removeClass("disabled");
                   $("#loading").hide();
                   $("body2").attr("style", "");
+                  $("#notification7").hide();
                   $("#notification6").hide();
                   $("#notification5").show();
                   $("#notification4").hide();
@@ -592,6 +783,7 @@
         $("#check-comment").text("再入力のパスワードが一致しません。");
         $("#check-comment").addClass("text-danger");
         $("#check").parent().find("svg[name='warning']").show();
+        $("#notification7").hide();
         $("#notification6").show();
         $("#notification0").hide();
         $("#notification1").hide();
@@ -688,8 +880,27 @@
         }
       }
     }
+
+    <% if(line_signup){ %>
+      $("#resend_msg").click(function(){
+        grecaptcha.ready(function () {
+          grecaptcha
+            .execute("6LesykIpAAAAAKGDuAdIlF8h6XY7fo4DFNrnPQxd", {
+              action: "submit",
+            })
+            .then(function (token) {
+              $("#recaptcha_line").val(token);
+              $("#line_username").val($("#linepassword").val())
+              $("#line_form").submit();
+            })})
+      })
+    <% } %>
+
     const error = "<%= error %>";
     $(window).on("load", function () {
+      <% if(line_signup){ %>
+        $("#modal_recommend").modal("show");
+      <% } %>
       $("#loading").hide();
       $("svg[name='success']").hide();
       $("svg[name='warning']").hide();
@@ -701,6 +912,7 @@
       $("#notification3").hide();
       $("#notification5").hide();
       $("#notification6").hide();
+      $("#notification7").hide();
       $("#close1").hide();
       $("#close2").hide();
       $("#close0").hide();
@@ -714,7 +926,7 @@
         $("#password").parent().find("svg[name='warning']").show();
         document
           .getElementById("username")
-          .addEventListener("keyup", function () {
+          .addEventListener("keydown", function () {
             $("#username").removeClass("border border-danger");
             $("#username").addClass("border border-success");
             $("#username-comment").removeClass("text-danger");
@@ -739,9 +951,31 @@
         $("#notification2").text(
           "不正なログインです。もう一度やり直して下さい。"
         );
+      } else if(error==4){
       } else {
         $("#notification0").show();
       }
+    });
+
+    $(".mouse").mouseover(function () {
+      $(this).attr(
+        "style",
+        "background-color: rgb(0, 0, 0, 0.1); margin: auto; display: flex; width: 180px; position: relative; border-radius: 8px;"
+      );
+    });
+
+    $(".mouse").mouseout(function () {
+      $(this).attr(
+        "style",
+        "background-color: rgb(0, 0, 0, 0); margin: auto; display: flex; width: 180px; position: relative; border-radius: 8px;"
+      );
+    });
+
+    $(".mouse").click(function () {
+      $(this).attr(
+        "style",
+        "background-color: rgb(0, 0, 0, 0.7); margin: auto; display: flex; width: 180px; position: relative; border-radius: 8px;"
+      );
     });
   </script>
 </html>

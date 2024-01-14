@@ -24,6 +24,7 @@ const profileRouter = require("./routes/profile");
 const historyRouter = require("./routes/history");
 const internal_errorRouter = require("./routes/internal_error");
 const notfoundRouter = require("./routes/notfound");
+const lineRouter = require("./routes/line_login");
 
 ///socketioや上の各処理で、共通利用される関数は/function以下のファイルに記述
 const authorization_js = require("./function/authorization");
@@ -497,7 +498,7 @@ io.on("connection", (socket) => {
                             for (let i = 0; i < row.length; i++) {
                               ///部屋番号とゲームの終了時間、差出人のusername、レッテルの中身、宛名ユーザーの識別暗号を保存
                               db.run(
-                                "INSERT INTO profile_msg (from_username,msg,to_user_authorization,time,room_number,color) VALUES(?,?,?,?,?,?)",
+                                "INSERT INTO profile_msg (from_username,msg,to_user_authorization,time,room_number,color,from_color) VALUES(?,?,?,?,?,?,?)",
                                 [
                                   row[i]["from_username"],
                                   row[i]["msg"],
@@ -505,6 +506,7 @@ io.on("connection", (socket) => {
                                   date,
                                   room_number,
                                   row[i]["color"],
+                                  row[i]["from_color"],
                                 ],
                                 (err) => {
                                   if (err) {
@@ -610,11 +612,16 @@ io.on("connection", (socket) => {
                   } else {
                     db.close();
                     let to_username;
+                    let from_color;
                     for (let i = 0; i < row.length; i++) {
                       if (row[i]["authorization"] == msg[0]) {
                         to_username = row[i]["user"];
                         mycolor = row[i]["color"];
-                        break;
+                      } else if (
+                        row[i]["authorization"] ==
+                        socket.request.session.user_authorization
+                      ) {
+                        from_color = row[i]["color"];
                       }
                     }
                     ///貼ったレッテルのmsgごとの、識別暗号を生成する
@@ -630,7 +637,7 @@ io.on("connection", (socket) => {
                       db.run(
                         "INSERT INTO " +
                           authorization +
-                          "(player1, player2, msg, from_username, to_username, control, color) VALUES(?, ?, ?, ?, ?, ?, ?)",
+                          "(player1, player2, msg, from_username, to_username, control, color, from_color) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                         [
                           socket.request.session.user_authorization,
                           msg[0],
@@ -639,6 +646,7 @@ io.on("connection", (socket) => {
                           to_username,
                           control,
                           mycolor,
+                          from_color,
                         ],
                         (err) => {
                           if (err) {
@@ -875,6 +883,7 @@ app.use("/room", roomRouter);
 app.use("/room/*", room_joinRouter);
 app.use("/signup", signupRouter);
 app.use("/history", historyRouter);
+app.use("/line_login", lineRouter);
 
 app.use("*", notfoundRouter); ///404用、必ず一番最後に記述
 

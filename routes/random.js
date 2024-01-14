@@ -105,7 +105,7 @@ router.post("/", (req, res) => {
         db.run(
           'CREATE TABLE "' +
             authorization +
-            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, "control" TEXT NOT NULL UNIQUE, "color"	TEXT, PRIMARY KEY("id" AUTOINCREMENT) );',
+            '" ( "id"	INTEGER NOT NULL UNIQUE, "player1"	TEXT NOT NULL, "player2"	TEXT NOT NULL,  "msg"	TEXT NOT NULL, "from_username" TEXT NOT NULL,"to_username" TEXT NOT NULL, "control" TEXT NOT NULL UNIQUE, "color"	TEXT, "from_color" TEXT , PRIMARY KEY("id" AUTOINCREMENT) );',
           (err) => {
             if (err) {
               console.error(err.message);

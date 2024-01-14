@@ -476,7 +476,7 @@
         $("#username-comment").addClass("text-danger");
         document
           .getElementById("username")
-          .addEventListener("keypress", function () {
+          .addEventListener("keydown", function () {
             $("#username").removeClass("border-danger");
             $("#username").addClass("border-success");
             $("#username").parent().find("svg[name='warning']").hide();
