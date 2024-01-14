@@ -23,7 +23,7 @@ router.post("/", upload.fields([]), (req, res) => {
 
     // 2. URLSearchParamsクラスのインスタンスを作成する
     const params = new URLSearchParams();
-    params.append("secret", "6LesykIpAAAAAGMKvjChXtsxHfeOOeg5n0SLaxlj");
+    params.append("secret", "シークレット");
     params.append("response", recapcha);
 
     // 3. Post通信をする
@@ -83,7 +83,7 @@ router.post("/", upload.fields([]), (req, res) => {
                   "authorization"
                 );
                 db.run(
-                  "INSERT INTO users (username, password, authorization) VALUES (?, ?, ?)",
+                  "INSERT INTO users (username, password, authorization, line) VALUES (?, ?, ?, 0)",
                   [username, hashed_password, authorization],
                   (err) => {
                     if (err) {

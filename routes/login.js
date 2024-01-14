@@ -9,12 +9,64 @@ router.get("/", (req, res) => {
   if (req.session.username) {
     return res.redirect("/");
   } else {
-    // CSRF トークンを生成して追加
-    const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
-    ///CSRFトークンはsessionにも保存、画面に送りもする。
-    req.session.signup = csrfToken;
-    ///通常のloginページへのアクセスの場合
-    return res.render("login.ejs", { csrfToken: csrfToken, error: 0 });
+    if (req.session.line_signup) {
+      // CSRF トークンを生成して追加
+      const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
+      ///CSRFトークンはsessionにも保存、画面に送りもする。
+      req.session.signup = csrfToken;
+      ///lineのloginでusernameの打ち込み時へのアクセスの場合
+      if (req.session.line_error2) {
+        return res.render("login.ejs", {
+          csrfToken: csrfToken,
+          error: 0,
+          line_signup: true,
+          line_error: 1,
+          line: false,
+        });
+      }
+      if (req.session.line_error3) {
+        return res.render("login.ejs", {
+          csrfToken: csrfToken,
+          error: 0,
+          line_signup: true,
+          line_error: 2,
+          line: false,
+        });
+      }
+      return res.render("login.ejs", {
+        csrfToken: csrfToken,
+        error: 0,
+        line_signup: true,
+        line_error: 0,
+        line: false,
+      });
+    } else if (req.session.line_error1) {
+      // CSRF トークンを生成して追加
+      const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
+      ///CSRFトークンはsessionにも保存、画面に送りもする。
+      req.session.signup = csrfToken;
+      ///通常のloginページへのアクセスの場合
+      return res.render("login.ejs", {
+        csrfToken: csrfToken,
+        error: 4,
+        line_signup: false,
+        line: false,
+        line_error: 0,
+      });
+    } else {
+      // CSRF トークンを生成して追加
+      const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
+      ///CSRFトークンはsessionにも保存、画面に送りもする。
+      req.session.signup = csrfToken;
+      ///通常のloginページへのアクセスの場合
+      return res.render("login.ejs", {
+        csrfToken: csrfToken,
+        error: 0,
+        line_signup: false,
+        line: false,
+        line_error: 0,
+      });
+    }
   }
 });
 
@@ -22,20 +74,30 @@ router.post("/", (req, res) => {
   const received_csrfToken = req.body._csrf;
   const session_csrfToken = req.session.signup;
   const recapcha = req.body.recaptcha;
+  req.session.line_error2 = false;
+  req.session.line_error3 = false;
+  req.session.line_error1 = false;
+  req.session.line_signup = false;
   if (received_csrfToken != session_csrfToken) {
     // CSRF トークンを生成して追加
     const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
     ///CSRFトークンはsessionにも保存、画面に送りもする。
     req.session.signup = csrfToken;
     ///通常のloginページへのアクセスの場合
-    return res.render("login.ejs", { csrfToken: csrfToken, error: 2 });
+    return res.render("login.ejs", {
+      csrfToken: csrfToken,
+      error: 2,
+      line_signup: false,
+      line: false,
+      line_error: 0,
+    });
   }
   ///リキャプチャ確認
   // 1. application/x-www-form-urlencoded形式でPOSTする
 
   // 2. URLSearchParamsクラスのインスタンスを作成する
   const params = new URLSearchParams();
-  params.append("secret", "");
+  params.append("secret", "しーくれっとー");
   params.append("response", recapcha);
 
   // 3. Post通信をする
@@ -60,7 +122,7 @@ router.post("/", (req, res) => {
       ///ログインしてくるアクセスがあった場合、まずデータベースにアクセス。
       const db = new sqlite3.Database("DV.sqlite3");
       ///usersテーブルから、user一覧を取得
-      db.all("SELECT * FROM users", function (err, row) {
+      db.all("SELECT * FROM users WHERE line=0", function (err, row) {
         ///データベース取得errorが発生した場合は、内部エラーを表示
         if (err) {
           console.error(err.message);
@@ -105,7 +167,13 @@ router.post("/", (req, res) => {
             ///CSRFトークンはsessionにも保存、画面に送りもする。
             req.session.signup = csrfToken;
             ///それ以外の場合は、sessionを破壊して、loginページをお見舞い、不正な番号だと表示をだす。
-            return res.render("login.ejs", { csrfToken: csrfToken, error: 2 });
+            return res.render("login.ejs", {
+              csrfToken: csrfToken,
+              error: 2,
+              line_signup: false,
+              line: false,
+              line_error: 0,
+            });
           }
         }
       });
@@ -115,7 +183,13 @@ router.post("/", (req, res) => {
       ///CSRFトークンはsessionにも保存、画面に送りもする。
       req.session.signup = csrfToken;
       ///それ以外の場合は、sessionを破壊して、loginページをお見舞い、不正な番号だと表示をだす。
-      return res.render("login.ejs", { csrfToken: csrfToken, error: 3 });
+      return res.render("login.ejs", {
+        csrfToken: csrfToken,
+        error: 3,
+        line_signup: false,
+        line: false,
+        line_error: 0,
+      });
     }
   });
 });
