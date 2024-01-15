@@ -14,8 +14,6 @@ router.post("/", upload.fields([]), (req, res) => {
   const received_csrfToken = req.body._csrf;
   const session_csrfToken = req.session.signup;
   const recapcha = req.body.recaptcha;
-  console.log(req.body);
-  console.log(username);
   ///フォームから受け取ってきたcsrfトークンとsessionのcsrfトークンが一致しているか確認
   if (received_csrfToken == session_csrfToken) {
     ///リキャプチャ確認
@@ -23,7 +21,7 @@ router.post("/", upload.fields([]), (req, res) => {
 
     // 2. URLSearchParamsクラスのインスタンスを作成する
     const params = new URLSearchParams();
-    params.append("secret", "シークレット");
+    params.append("secret", "しーくれっと");
     params.append("response", recapcha);
 
     // 3. Post通信をする
@@ -42,7 +40,7 @@ router.post("/", upload.fields([]), (req, res) => {
     postResponse().then((data) => {
       if (
         data["success"] == true &&
-        data["hostname"] == "localhost" &&
+        data["hostname"] == "kinami-mori-koyama.com" &&
         data["score"] > 0.5 ///精度は0.6以上を要求
       ) {
         ///登録したいパスワードをハッシュ化

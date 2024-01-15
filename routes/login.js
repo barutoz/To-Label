@@ -97,7 +97,7 @@ router.post("/", (req, res) => {
 
   // 2. URLSearchParamsクラスのインスタンスを作成する
   const params = new URLSearchParams();
-  params.append("secret", "しーくれっとー");
+  params.append("secret", "しーくれっと");
   params.append("response", recapcha);
 
   // 3. Post通信をする
@@ -116,7 +116,7 @@ router.post("/", (req, res) => {
   postResponse().then((data) => {
     if (
       data["success"] == true &&
-      data["hostname"] == "localhost" &&
+      data["hostname"] == "kinami-mori-koyama.com" &&
       data["score"] > 0.5 ///精度は0.6以上を要求
     ) {
       ///ログインしてくるアクセスがあった場合、まずデータベースにアクセス。
@@ -163,6 +163,7 @@ router.post("/", (req, res) => {
             return res.redirect("/");
           } else {
             // CSRF トークンを生成して追加
+
             const csrfToken = pswd_js.createPassword(); ///csrfトークンは外部ファイルの関数使って生成
             ///CSRFトークンはsessionにも保存、画面に送りもする。
             req.session.signup = csrfToken;

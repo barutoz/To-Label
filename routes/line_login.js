@@ -17,7 +17,7 @@ router.get("/", (req, res) => {
   encryptSha256().then((data) => {
     req.session.state = data;
     return res.redirect(
-      "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=2002726042&redirect_uri=https%3A%2F%2Fkinami-mori-koyama.com%2FTo-Label%2Fline_login%2Fcallback&state=" +
+      "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=2001631602&redirect_uri=https%3A%2F%2Fkinami-mori-koyama.com%2FTo-Label%2Fline_login%2Fcallback&state=" +
         data +
         "&scope=openid"
     );
@@ -38,7 +38,7 @@ router.get("/callback", (req, res) => {
       "https://kinami-mori-koyama.com/To-Label/line_login/callback"
     );
     params.append("client_id", "2001631602");
-    params.append("client_secret", "///シークレットキー");
+    params.append("client_secret", "しーくれっと");
     const postResponse = async () => {
       const response = await fetch("https://api.line.me/oauth2/v2.1/token", {
         method: "POST", // HTTP-Methodを指定する！
@@ -199,7 +199,7 @@ router.post("/signup", (req, res) => {
       received_csrfToken == session_csrfToken
     ) {
       const params5 = new URLSearchParams();
-      params5.append("secret", "シークレットキー");
+      params5.append("secret", "しーくれっと");
       params5.append("response", recapcha);
       const postResponse5 = async () => {
         const response5 = await fetch(
@@ -216,7 +216,7 @@ router.post("/signup", (req, res) => {
       postResponse5().then((data5) => {
         if (
           data5["success"] == true &&
-          data5["hostname"] == "localhost" &&
+          data5["hostname"] == "kinami-mori-koyama.com" &&
           data5["score"] > 0.5 ///精度は0.6以上を要求
         ) {
           db = new sqlite3.Database("DV.sqlite3");
