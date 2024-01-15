@@ -17,7 +17,7 @@ router.get("/", (req, res) => {
   encryptSha256().then((data) => {
     req.session.state = data;
     return res.redirect(
-      "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=2002726042&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fline_login%2Fcallback&state=" +
+      "https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=2002726042&redirect_uri=https%3A%2F%2Fkinami-mori-koyama.com%2FTo-Label%2Fline_login%2Fcallback&state=" +
         data +
         "&scope=openid"
     );
@@ -33,8 +33,11 @@ router.get("/callback", (req, res) => {
     const params = new URLSearchParams();
     params.append("grant_type", "authorization_code");
     params.append("code", req.query.code);
-    params.append("redirect_uri", "http://localhost:3000/line_login/callback");
-    params.append("client_id", "2002726042");
+    params.append(
+      "redirect_uri",
+      "https://kinami-mori-koyama.com/To-Label/line_login/callback"
+    );
+    params.append("client_id", "2001631602");
     params.append("client_secret", "///シークレットキー");
     const postResponse = async () => {
       const response = await fetch("https://api.line.me/oauth2/v2.1/token", {
@@ -60,10 +63,10 @@ router.get("/callback", (req, res) => {
           return data2;
         };
         getResponse().then((data2) => {
-          if (data2["client_id"] == "2002726042" && data2["expires_in"] > 0) {
+          if (data2["client_id"] == "2001631602" && data2["expires_in"] > 0) {
             const params3 = new URLSearchParams();
             params3.append("id_token", id_token);
-            params3.append("client_id", "2002726042");
+            params3.append("client_id", "2001631602");
             const postResponse2 = async () => {
               const response3 = await fetch(
                 "https://api.line.me/oauth2/v2.1/verify",
