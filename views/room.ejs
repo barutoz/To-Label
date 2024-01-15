@@ -30,7 +30,7 @@
       data-bs-theme="dark"
     >
       <div class="container-fluid">
-        <a class="navbar-brand" href="/To-Label/" style="font-size: 30px"
+        <a class="navbar-brand" href="/To-Label" style="font-size: 30px"
           >To-Label</a
         >
         <button
@@ -48,7 +48,7 @@
         <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item">
-              <a class="nav-link" href="/To-Label/">Home</a>
+              <a class="nav-link" href="/To-Label">Home</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="/To-Label/history">History</a>
@@ -309,8 +309,8 @@
     <input type="text" id="msg_pop" hidden />
     <input type="number" id="number_pop" hidden />
     <script>
-      var socket = io("http://" + location.hostname, {
-        path: "/To-Label",
+      var socket = io({
+        path: "/To-Label/socket.io/",
       });
       let content;
       const self_authorization = "<%= self_authorization %>";

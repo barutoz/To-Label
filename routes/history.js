@@ -126,9 +126,7 @@ router.get("/", (req, res) => {
                 }
               }
             }
-            console.log(newlist);
-            console.log(newlist.length);
-            console.log(newlist[0][0]);
+
             return res.render("history.ejs", {
               username: username,
               exists: true,
